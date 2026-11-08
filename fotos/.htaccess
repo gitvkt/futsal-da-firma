@@ -1,0 +1,5 @@
+# Somente imagens podem ser servidas desta pasta
+Options -Indexes
+<FilesMatch "\.(php|phtml|phar|php\d|pl|py|cgi|sh|htaccess)$">
+    Require all denied
+</FilesMatch>
