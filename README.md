@@ -4,6 +4,10 @@ Aplicação web leve, responsiva e **sem banco de dados** para organizar partida
 
 > **Versão 6.0** — todos os dados ficam em um único arquivo `data/futsal.json`. Basta PHP; não é preciso MySQL.
 
+### 🌐 [Ver demonstração ao vivo → vktcloud.com.br/futsal](https://vktcloud.com.br/futsal/)
+
+> Sistema real em uso pelo grupo. A área administrativa é protegida por login.
+
 ![Preview](preview_site.png)
 
 ---
