@@ -1,10 +1,30 @@
-# Arquivos de conexão com credenciais reais
+# Dados reais do sistema (nunca versionar)
+data/futsal.json
+data/futsal.json.tmp
+data/futsal.json.corrompido-*
+data/*.lock
+install/installed.lock
+
+# Fotos enviadas pelos usuários
+fotos/*
+!fotos/.htaccess
+!fotos/index.html
+
+# Backups e versões locais
+versoes/
+backup_antes_correcao/
+*.zip
+
+# Credenciais (versões antigas com MySQL)
+conexao.php
 conexao_local.php
 config.php
 .env
 
 # Logs e arquivos temporários
 *.log
+error_log
 .DS_Store
+Thumbs.db
 .vscode/
 .idea/

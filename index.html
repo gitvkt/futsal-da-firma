@@ -65,6 +65,57 @@
 
         <main class="max-w-4xl mx-auto px-4 pt-6 space-y-6">
 
+            <!-- PRÓXIMO JOGO (público) -->
+            <div id="blocoProximoJogo" class="hidden relative overflow-hidden rounded-2xl p-5 sm:p-6 shadow-2xl border proximo-jogo">
+                <!-- bolinhas decorativas -->
+                <div class="pointer-events-none absolute -right-6 -top-6 text-8xl opacity-10 select-none bola-gira">⚽</div>
+                <div class="pointer-events-none absolute -left-4 -bottom-8 text-7xl opacity-10 select-none">🏆</div>
+
+                <button onclick="abrirPopupAgenda()" title="Ver agenda de jogos"
+                    class="absolute top-3 right-3 z-10 bg-white/15 hover:bg-white/25 backdrop-blur text-white rounded-xl w-10 h-10 flex items-center justify-center transition shadow-lg">
+                    <i class="fa-solid fa-calendar-days text-lg"></i>
+                </button>
+
+                <div class="relative z-[1] space-y-2 pr-12">
+                    <span id="pjEtiqueta" class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/20 text-white"></span>
+                    <h2 id="pjTitulo" class="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow"></h2>
+                    <p id="pjData" class="text-white/95 font-bold text-sm sm:text-base flex flex-wrap items-center gap-x-3 gap-y-1"></p>
+                    <p id="pjContagem" class="text-white/90 text-xs font-semibold"></p>
+                    <p id="pjMensagem" class="text-white/85 text-xs sm:text-sm italic"></p>
+                    <button id="btnCompartilharJogo" onclick="compartilharProximoJogo()"
+                        class="hidden mt-2 inline-flex items-center gap-2 bg-white/90 hover:bg-white text-green-700 font-extrabold text-xs px-4 py-2 rounded-xl shadow-lg transition">
+                        <i class="fa-brands fa-whatsapp text-base"></i> Avisar a galera
+                    </button>
+                </div>
+            </div>
+
+            <!-- 0. CONFIRMAR PRESENÇA (público) -->
+            <div class="bg-gradient-to-r from-slate-800 to-emerald-950/40 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 shadow-xl space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-hand text-emerald-400"></i>
+                        <h3 class="font-bold text-slate-200 text-sm uppercase tracking-wide">Confirmar Presença</h3>
+                    </div>
+                    <span id="badgeFilaPublica"
+                        class="hidden text-[10px] bg-amber-500/10 text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-500/20">0 aguardando</span>
+                </div>
+                <p class="text-xs text-slate-400">Digite seu nome e envie. O organizador vai aprovar sua presença.</p>
+                <p id="avisoListaCompleta"
+                    class="hidden text-xs font-medium p-2 rounded-lg border bg-rose-500/10 text-rose-300 border-rose-500/20">
+                    <i class="fa-solid fa-ban mr-1"></i> Lista completa! Todas as vagas já foram preenchidas.
+                </p>
+                <form onsubmit="confirmarPresenca(event)" class="flex gap-2">
+                    <input type="text" id="inputConfirmarNome" placeholder="Seu nome" maxlength="80" required
+                        class="bg-slate-900 border border-slate-700/80 text-sm rounded-xl px-3 py-2.5 text-slate-200 w-full focus:outline-none focus:border-emerald-500/60 transition">
+                    <button type="submit" id="btnConfirmarPresenca"
+                        class="bg-emerald-600/90 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Enviar</span>
+                    </button>
+                </form>
+                <p id="msgConfirmarPresenca" class="hidden text-xs font-medium p-2 rounded-lg border"></p>
+            </div>
+
             <!-- 1. PRIMEIRO BLOCO: Lista de Confirmados -->
             <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <div class="flex justify-between items-center pb-2 border-b border-slate-700/50">
@@ -77,7 +128,52 @@
                         Confirmados</span>
                 </div>
 
+                <!-- GOLEIROS FIXOS (não pagam) -->
+                <div>
+                    <span class="text-[10px] uppercase tracking-wider text-sky-400/90 font-bold flex items-center gap-1.5 mb-2">
+                        <i class="fa-solid fa-hand-back-fist"></i> Goleiros Fixos
+                        <span class="text-slate-500 normal-case font-normal tracking-normal">· não pagam</span>
+                    </span>
+                    <ul id="containerGoleiros" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></ul>
+                    <input type="file" id="inputFotoGoleiro" accept="image/jpeg,image/png,image/webp" class="hidden">
+                </div>
+
+                <!-- VER SORTEIO (página pública: só visualizar times confirmados) -->
+                <div id="blocoVerSorteio" class="hidden bg-violet-500/5 border border-violet-500/25 rounded-xl p-3">
+                    <button onclick="abrirPopupSorteio()"
+                        class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-extrabold text-sm sm:text-base px-5 py-3.5 rounded-xl shadow-lg shadow-violet-900/40 transition flex items-center justify-center gap-3">
+                        <svg class="w-8 h-8 drop-shadow" viewBox="0 0 64 64" aria-hidden="true">
+                            <rect x="6" y="6" width="52" height="52" rx="12" fill="#fff" stroke="#c4b5fd" stroke-width="3"/>
+                            <g fill="#6d28d9"><circle cx="20" cy="20" r="5.5"/><circle cx="44" cy="20" r="5.5"/><circle cx="32" cy="32" r="5.5"/><circle cx="20" cy="44" r="5.5"/><circle cx="44" cy="44" r="5.5"/></g>
+                        </svg>
+                        <span>VER SORTEIO</span>
+                    </button>
+                </div>
+
+                <!-- SORTEIO DE TIMES -->
+                <div id="blocoSorteio" class="hidden flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-violet-500/5 border border-violet-500/25 rounded-xl p-3">
+                    <button id="btnSortear" onclick="sortearTimes()"
+                        class="group flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-extrabold text-sm sm:text-base px-5 py-3.5 rounded-xl shadow-lg shadow-violet-900/40 transition flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-wait">
+                        <svg id="dadoSvg" class="w-8 h-8 drop-shadow" viewBox="0 0 64 64" aria-hidden="true">
+                            <rect x="6" y="6" width="52" height="52" rx="12" fill="#fff" stroke="#c4b5fd" stroke-width="3"/>
+                            <g id="dadoPontos" fill="#6d28d9"></g>
+                        </svg>
+                        <span id="txtSortear">SORTEAR TIMES</span>
+                    </button>
+                    <div class="flex items-center gap-2 justify-center">
+                        <label class="text-[11px] text-slate-400">Times:</label>
+                        <span id="infoTimesSorteio" class="text-[11px] text-violet-200 bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-2 whitespace-nowrap">4 por time</span>
+                        <button onclick="abrirPopupSorteio()" id="btnVerUltimoSorteio" title="Ver último sorteio"
+                            class="hidden text-violet-300 hover:text-violet-200 bg-slate-800 border border-slate-700 px-2.5 py-2 rounded-lg text-xs">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Container da Lista em <ul> -->
+                <span class="text-[10px] uppercase tracking-wider text-emerald-400/90 font-bold flex items-center gap-1.5 -mb-1">
+                    <i class="fa-solid fa-person-running"></i> Jogadores de Linha
+                </span>
                 <ul id="containerListaJogadores" class="space-y-2.5">
                     <li class="text-center py-6 text-slate-500 italic text-xs">Carregando jogadores...</li>
                 </ul>
@@ -162,6 +258,28 @@
                 </div>
 
                 <!-- Seção 1: Operações Básicas -->
+                <!-- FILA DE ESPERA -->
+                <div class="bg-slate-900/60 border border-emerald-500/30 rounded-xl p-3 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-hourglass-half"></i> Fila de Espera
+                            <span id="badgeFilaEspera" class="bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded-full text-[10px]">0</span>
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <label class="text-[10px] text-slate-400 flex items-center gap-1 cursor-pointer" title="Atualiza a fila automaticamente a cada 15 segundos">
+                                <input type="checkbox" id="chkAutoAtualizar" checked class="accent-emerald-500"> auto
+                            </label>
+                            <button onclick="aceitarTodaFila()" id="btnAceitarTodos"
+                                class="hidden text-[10px] bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 px-2 py-1 rounded transition">
+                                <i class="fa-solid fa-check-double"></i> Aceitar todos
+                            </button>
+                        </div>
+                    </div>
+                    <ul id="listaFilaEspera" class="space-y-1.5 text-xs max-h-60 overflow-y-auto">
+                        <li class="text-slate-500 italic">Nenhum pedido aguardando.</li>
+                    </ul>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Add Jogador -->
                     <form onsubmit="adicionarJogador(event)" class="space-y-1.5">
@@ -303,7 +421,63 @@
                             <i class="fa-solid fa-trash-arrow-up"></i>
                             <span>Zerar Saldo Caixa</span>
                         </button>
+                        <button onclick="zerarMemoriaSorteio()"
+                            class="bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 font-medium text-xs px-4 py-2.5 rounded-xl border border-violet-500/30 transition flex items-center gap-2">
+                            <i class="fa-solid fa-dice"></i>
+                            <span>Zerar Memória do Sorteio</span>
+                        </button>
                     </div>
+
+                    <!-- Valor da etapa / pendência -->
+                    <form onsubmit="salvarValorPendencia(event)"
+                        class="space-y-1.5 bg-slate-900/40 p-3 rounded-xl border border-slate-700/50 md:w-1/2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs text-slate-300 font-medium block">Valor por Jogador na Etapa (R$)</label>
+                            <span class="text-[10px] text-slate-400">Quem pagar menos fica devendo a diferença</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="number" step="0.01" min="0.01" id="inputValorPendencia" placeholder="10.00" required
+                                class="bg-slate-900 border border-slate-700/80 text-xs rounded-xl px-3 py-2 text-slate-300 w-full focus:outline-none focus:border-amber-500/50 transition">
+                            <button type="submit"
+                                class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold px-3 py-2 rounded-xl text-xs transition">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Limite de jogadores -->
+                    <form onsubmit="salvarMaxJogadores(event)"
+                        class="space-y-1.5 bg-slate-900/40 p-3 rounded-xl border border-slate-700/50 md:w-1/2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs text-slate-300 font-medium block">Máximo de Jogadores</label>
+                            <span class="text-[10px] text-slate-400">0 = sem limite</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="number" step="1" min="0" max="500" id="inputMaxJogadores" placeholder="Ex: 14" required
+                                class="bg-slate-900 border border-slate-700/80 text-xs rounded-xl px-3 py-2 text-slate-300 w-full focus:outline-none focus:border-amber-500/50 transition">
+                            <button type="submit"
+                                class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold px-3 py-2 rounded-xl text-xs transition">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <hr class="border-slate-700/60">
+
+                <!-- Seção: Histórico de Etapas Finalizadas -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-sky-400"></i>
+                            <span>Histórico de Etapas</span>
+                        </h4>
+                        <span id="badgeHistorico"
+                            class="bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded-full text-[10px]">0</span>
+                    </div>
+                    <ul id="listaHistoricoEtapas" class="space-y-2 text-xs max-h-96 overflow-y-auto">
+                        <li class="text-slate-500 italic">Nenhuma etapa finalizada ainda.</li>
+                    </ul>
                 </div>
 
                 <hr class="border-slate-700/60">
@@ -420,6 +594,168 @@
             </div>
         </div>
     </footer>
+
+    <!-- Popup Agenda de Jogos -->
+    <div id="popupAgenda" onclick="if (event.target === this) fecharPopupAgenda()"
+        class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-emerald-500/40 rounded-2xl w-full max-w-lg shadow-2xl relative max-h-[90vh] flex flex-col sorteio-pop">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-emerald-400 text-lg"></i>
+                    <h3 class="font-extrabold text-slate-100 text-base">Agenda de Jogos</h3>
+                </div>
+                <button onclick="fecharPopupAgenda()" class="text-slate-400 hover:text-slate-200 transition" title="Fechar">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-4">
+                <!-- Formulário (só admin) -->
+                <form id="formAgenda" onsubmit="salvarJogo(event)" class="hidden bg-slate-900/60 border border-amber-500/30 rounded-xl p-3 space-y-2 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span id="formAgendaTitulo" class="font-bold text-amber-400 uppercase tracking-wider"><i class="fa-solid fa-plus mr-1"></i> Novo jogo</span>
+                        <button type="button" onclick="limparFormAgenda()" class="text-slate-400 hover:text-slate-200 text-[10px]">limpar</button>
+                    </div>
+                    <input type="hidden" id="agId">
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="space-y-1"><span class="text-slate-400">Data</span>
+                            <input type="date" id="agData" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200"></label>
+                        <label class="space-y-1"><span class="text-slate-400">Horário</span>
+                            <input type="time" id="agHora" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200"></label>
+                    </div>
+                    <label class="block space-y-1"><span class="text-slate-400">Local (opcional)</span>
+                        <input type="text" id="agLocal" maxlength="100" placeholder="Ex: Quadra do Clube" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200"></label>
+                    <label class="block space-y-1"><span class="text-slate-400">Situação</span>
+                        <select id="agStatus" onchange="alternarCamposReagendar()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200">
+                            <option value="confirmado">✅ Confirmado — Teremos futebol</option>
+                            <option value="reagendado">🔁 Reagendado</option>
+                            <option value="cancelado">❌ Cancelado</option>
+                        </select></label>
+                    <div id="agCamposReagendar" class="hidden grid grid-cols-2 gap-2">
+                        <label class="space-y-1"><span class="text-slate-400">Nova data</span>
+                            <input type="date" id="agNovaData" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200"></label>
+                        <label class="space-y-1"><span class="text-slate-400">Novo horário</span>
+                            <input type="time" id="agNovaHora" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200"></label>
+                    </div>
+                    <label class="block space-y-1"><span class="text-slate-400">Observação (opcional)</span>
+                        <input type="text" id="agObs" maxlength="200" placeholder="Ex: Feriado, quadra em reforma..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200"></label>
+                    <button type="submit" class="w-full bg-amber-500/90 hover:bg-amber-500 text-slate-950 font-bold py-2 rounded-lg transition">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Salvar jogo
+                    </button>
+                </form>
+
+                <!-- Jogos semanais (só admin) -->
+                <form id="formRecorrencia" onsubmit="gerarRecorrencia(event)" class="hidden bg-slate-900/60 border border-emerald-500/30 rounded-xl p-3 space-y-2 text-xs">
+                    <span class="font-bold text-emerald-400 uppercase tracking-wider"><i class="fa-solid fa-repeat mr-1"></i> Jogos semanais</span>
+                    <p class="text-slate-400">Cria um jogo por semana, sempre no mesmo dia da semana do primeiro jogo.</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="space-y-1"><span class="text-slate-400">Primeiro jogo</span>
+                            <input type="date" id="recInicio" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200"></label>
+                        <label class="space-y-1"><span class="text-slate-400">Horário</span>
+                            <input type="time" id="recHora" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200"></label>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="space-y-1"><span class="text-slate-400">Quantas semanas</span>
+                            <select id="recSemanas" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200">
+                                <option value="4">4 semanas (1 mês)</option>
+                                <option value="8" selected>8 semanas (2 meses)</option>
+                                <option value="13">13 semanas (3 meses)</option>
+                                <option value="26">26 semanas (6 meses)</option>
+                            </select></label>
+                        <label class="space-y-1"><span class="text-slate-400">Local (opcional)</span>
+                            <input type="text" id="recLocal" maxlength="100" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-slate-200"></label>
+                    </div>
+                    <p id="recResumo" class="text-emerald-300 font-semibold"></p>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg transition">
+                        <i class="fa-solid fa-calendar-plus mr-1"></i> Gerar jogos semanais
+                    </button>
+                </form>
+
+                <!-- Barra de seleção em massa (só admin) -->
+                <div id="barraSelecaoAgenda" class="hidden flex flex-wrap items-center gap-2 bg-slate-900/60 border border-slate-700/60 rounded-xl p-2 text-[11px]">
+                    <label class="flex items-center gap-1.5 cursor-pointer text-slate-300 font-medium">
+                        <input type="checkbox" id="chkTodosAgenda" onchange="selecionarTodosAgenda(this.checked)" class="accent-rose-500 w-4 h-4"> Todos
+                    </label>
+                    <button type="button" onclick="selecionarAgendaPor('futuros')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Futuros</button>
+                    <button type="button" onclick="selecionarAgendaPor('passados')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Já passaram</button>
+                    <button type="button" onclick="selecionarAgendaPor('cancelados')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Cancelados</button>
+                    <button type="button" onclick="excluirSelecionadosAgenda()" id="btnExcluirSelecionados" disabled
+                        class="ml-auto px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1">
+                        <i class="fa-solid fa-trash"></i> Excluir (<span id="qtdSelecionadosAgenda">0</span>)
+                    </button>
+                </div>
+
+                <ul id="listaAgenda" class="space-y-2 text-xs"></ul>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .proximo-jogo.st-confirmado { background: linear-gradient(135deg, #059669 0%, #10b981 45%, #84cc16 100%); border-color: rgba(190, 242, 100, .45); }
+        .proximo-jogo.st-reagendado { background: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #facc15 100%); border-color: rgba(253, 224, 71, .5); }
+        .proximo-jogo.st-cancelado  { background: linear-gradient(135deg, #be123c 0%, #e11d48 55%, #f97316 100%); border-color: rgba(253, 164, 175, .45); }
+        .proximo-jogo.st-vazio      { background: linear-gradient(135deg, #334155 0%, #475569 100%); border-color: rgba(148, 163, 184, .35); }
+        @keyframes bolaGira { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+        .bola-gira { animation: bolaGira 12s linear infinite; }
+        @keyframes pulsar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+        .pulsar { animation: pulsar 1.8s ease-in-out infinite; display: inline-block; }
+    </style>
+
+    <!-- Popup Resultado do Sorteio -->
+    <div id="popupSorteio" onclick="if (event.target === this) fecharPopupSorteio()"
+        class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-violet-500/40 rounded-2xl w-full max-w-2xl shadow-2xl relative max-h-[90vh] flex flex-col sorteio-pop">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-dice text-violet-400 text-lg"></i>
+                    <h3 class="font-extrabold text-slate-100 text-base">Times Sorteados</h3>
+                    <span id="sorteioStatus" class="text-[10px] px-2 py-0.5 rounded-full border"></span>
+                </div>
+                <button onclick="fecharPopupSorteio()" class="text-slate-400 hover:text-slate-200 transition" title="Fechar">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-4">
+                <div id="sorteioTimes" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                <div id="sorteioRepeticoes" class="text-xs"></div>
+                <p id="sorteioInfo" class="text-[10px] text-slate-500 text-center"></p>
+            </div>
+            <div id="sorteioAcoes" class="flex flex-wrap justify-end gap-2 px-5 py-4 border-t border-slate-700">
+                <button onclick="compartilharSorteio()"
+                    class="text-xs font-bold bg-green-600 hover:bg-green-500 text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 mr-auto">
+                    <i class="fa-brands fa-whatsapp"></i> Compartilhar
+                </button>
+                <button onclick="sortearTimes()" id="btnSortearNovo"
+                    class="text-xs font-bold bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> Sortear de novo
+                </button>
+                <button onclick="confirmarSorteio()" id="btnConfirmarSorteio"
+                    class="text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                    <i class="fa-solid fa-check"></i> Confirmar times
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes dadoGira { 0% { transform: rotate(0) scale(1); } 50% { transform: rotate(180deg) scale(1.25); } 100% { transform: rotate(360deg) scale(1); } }
+        .dado-girando { animation: dadoGira .45s linear infinite; transform-origin: center; }
+        @keyframes sorteioPop { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .sorteio-pop { animation: sorteioPop .25s ease-out; }
+    </style>
+
+    <!-- Popup Foto do Goleiro -->
+    <div id="popupFotoGoleiro" onclick="if (event.target === this) fecharFotoGoleiro()"
+        class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-sky-500/30 rounded-2xl p-4 w-full max-w-lg shadow-2xl relative text-center space-y-3">
+            <button onclick="fecharFotoGoleiro()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-200 transition" title="Fechar">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <span id="popupFotoTitulo" class="inline-block text-[10px] font-bold text-sky-300 bg-sky-500/10 px-2 py-0.5 rounded"></span>
+            <img id="popupFotoImg" src="" alt="Foto do goleiro"
+                class="w-full aspect-square object-cover rounded-xl border-2 border-sky-400/40">
+            <p id="popupFotoNome" class="font-bold text-slate-200 text-base"></p>
+        </div>
+    </div>
 
     <!-- Modal Admin (Login) -->
     <div id="modalLogin"
@@ -659,11 +995,18 @@
                             : ``;
 
                         let acoesAdmin = '';
+                        const ehConvidado = !!jog.convidado;
                         if (isAdmin) {
                             acoesAdmin = `
                                 <div class="flex items-center gap-1 ml-2 border-l border-slate-700/60 pl-2">
+                                    <button onclick="alternarConvidado(${parseInt(jog.id)}, ${ehConvidado ? 'false' : 'true'})" class="${ehConvidado ? 'text-violet-300 bg-violet-500/15' : 'text-slate-400 hover:text-violet-300'} p-1 rounded hover:bg-slate-700/50 transition" title="${ehConvidado ? 'Desmarcar convidado' : 'Marcar como convidado'}">
+                                        <i class="fa-solid fa-user-tag text-xs"></i>
+                                    </button>
+                                    <button onclick="renomearJogador(${parseInt(jog.id)}, ${escHtml(JSON.stringify(String(jog.nome ?? '')))})" class="text-sky-400/80 hover:text-sky-300 p-1 rounded hover:bg-slate-700/50 transition" title="Editar nome">
+                                        <i class="fa-solid fa-signature text-xs"></i>
+                                    </button>
                                     <button onclick="editarValorJogador(${jog.id}, ${valorPago})" class="text-amber-400/80 hover:text-amber-300 p-1 rounded hover:bg-slate-700/50 transition" title="Editar Valor">
-                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                        <i class="fa-solid fa-dollar-sign text-xs"></i>
                                     </button>
                                     <button onclick="removerJogador(${jog.id})" class="text-rose-400/80 hover:text-rose-300 p-1 rounded hover:bg-slate-700/50 transition" title="Remover">
                                         <i class="fa-solid fa-trash text-xs"></i>
@@ -674,7 +1017,7 @@
 
                         li.innerHTML = `
                             <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">${index + 1}º</span>
-                            <span class="font-medium text-slate-200 flex-1">${jog.nome}</span>
+                            <span class="font-medium text-slate-200 flex-1">${escHtml(jog.nome)}${ehConvidado ? ' <span class="text-[9px] font-bold text-violet-300 bg-violet-500/15 border border-violet-500/30 px-1.5 py-0.5 rounded ml-1 align-middle">CONVIDADO</span>' : ''}</span>
                             <div class="flex items-center">
                                 ${badgeValor}
                                 ${acoesAdmin}
@@ -696,8 +1039,8 @@
                         const li = document.createElement('li');
                         li.className = 'flex justify-between items-center bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60';
                         li.innerHTML = `
-                            <span class="text-slate-200 font-medium">${jog.nome}</span>
-                            <button onclick="editarValorJogador(${jog.id}, 0)" class="text-xs bg-brand-500/10 text-brand-400 hover:bg-brand-500/20 px-2 py-1 rounded transition">
+                            <span class="text-slate-200 font-medium">${escHtml(jog.nome)}</span>
+                            <button onclick="editarValorJogador(${jog.id}, 10)" class="text-xs bg-brand-500/10 text-brand-400 hover:bg-brand-500/20 px-2 py-1 rounded transition">
                                 Dar Baixa
                             </button>
                         `;
@@ -723,7 +1066,7 @@
                         if (isAdmin) {
                             acoesPendencia = `
                                 <div class="flex items-center gap-1">
-                                    <button onclick="quitarPendencia(${pend.id}, '${pend.nome}', ${valorDevido})" class="text-xs bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 px-2 py-1 rounded transition flex items-center gap-1">
+                                    <button onclick="quitarPendencia(${parseInt(pend.id)}, ${escHtml(JSON.stringify(String(pend.nome ?? '')))}, ${valorDevido})" class="text-xs bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 px-2 py-1 rounded transition flex items-center gap-1">
                                         <i class="fa-solid fa-check"></i> Quitar
                                     </button>
                                     <button onclick="removerPendencia(${pend.id})" class="text-rose-400 hover:text-rose-300 p-1 rounded transition" title="Excluir">
@@ -737,7 +1080,7 @@
 
                         li.innerHTML = `
                             <div>
-                                <span class="text-slate-200 font-medium block">${pend.nome}</span>
+                                <span class="text-slate-200 font-medium block">${escHtml(pend.nome)}</span>
                                 <span class="text-[10px] text-rose-400 font-mono">Deve: R$ ${valorDevido.toFixed(2).replace('.', ',')}</span>
                             </div>
                             ${acoesPendencia}
@@ -746,7 +1089,30 @@
                     });
                 }
 
-                document.getElementById('totalJogadoresBadge').innerText = `${data.jogadores ? data.jogadores.length : 0} Confirmados`;
+                const qtdJog = data.jogadores ? data.jogadores.length : 0;
+                const maxJog = parseInt(data.max_jogadores || 0);
+                const cheia = maxJog > 0 && qtdJog >= maxJog;
+                const badgeJog = document.getElementById('totalJogadoresBadge');
+                badgeJog.innerText = maxJog > 0 ? `${qtdJog}/${maxJog} Confirmados${cheia ? ' · LOTADO' : ''}` : `${qtdJog} Confirmados`;
+                badgeJog.className = 'text-xs font-medium px-3 py-1 rounded-full border ' + (cheia
+                    ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+                    : 'bg-slate-700/60 text-slate-300 border-slate-600/60');
+
+                // Bloco Confirmar Presença: trava quando lotado
+                const inpConf = document.getElementById('inputConfirmarNome');
+                const btnConf = document.getElementById('btnConfirmarPresenca');
+                const avisoLot = document.getElementById('avisoListaCompleta');
+                if (inpConf && btnConf) {
+                    inpConf.disabled = cheia;
+                    btnConf.disabled = cheia;
+                    btnConf.classList.toggle('opacity-50', cheia);
+                    btnConf.classList.toggle('cursor-not-allowed', cheia);
+                    inpConf.placeholder = cheia ? 'Lista completa' : 'Seu nome';
+                }
+                if (avisoLot) avisoLot.classList.toggle('hidden', !cheia);
+
+                const inpMax = document.getElementById('inputMaxJogadores');
+                if (inpMax && document.activeElement !== inpMax) inpMax.value = maxJog;
                 document.getElementById('cardArrecadado').innerText = `R$ ${totalArrecadado.toFixed(2)}`;
                 document.getElementById('cardCustoQuadra').innerText = `R$ ${parseFloat(data.valor_quadra || 0).toFixed(2)}`;
                 document.getElementById('cardPagoQuadra').innerText = `R$ ${parseFloat(data.total_pago_quadra || 0).toFixed(2)}`;
@@ -770,7 +1136,7 @@
                         let btnDel = isAdmin ? `<button onclick="removerPagamentoQuadra(${pag.id})" class="text-rose-400/80 hover:text-rose-300 text-xs ml-2"><i class="fa-solid fa-xmark"></i></button>` : '';
 
                         li.innerHTML = `
-                            <span class="text-slate-300">${pag.descricao || 'Pagamento Quadra'}</span>
+                            <span class="text-slate-300">${escHtml(pag.descricao || 'Pagamento Quadra')}</span>
                             <div class="flex items-center">
                                 <span class="font-medium text-amber-400/90">R$ ${parseFloat(pag.valor || 0).toFixed(2)}</span>
                                 ${btnDel}
@@ -781,12 +1147,922 @@
                 }
 
                 renderizarAdmins(data.administradores || []);
+                renderizarHistorico(data.historico_etapas || []);
+                renderizarFila(data.fila_espera || [], data.total_fila_espera || 0);
+                renderizarGoleiros(data.goleiros || []);
+                agendaAtual = data.agenda || [];
+                hojeServidor = data.hoje || '';
+                renderizarProximoJogo();
+                ultimoSorteio = data.ultimo_sorteio || null;
+                atualizarBlocoSorteio();
+                const inpPend = document.getElementById('inputValorPendencia');
+                if (inpPend && document.activeElement !== inpPend) inpPend.value = parseFloat(data.valor_pendencia || 10).toFixed(2);
 
             } catch (err) {
                 console.error('Erro ao carregar dados:', err);
                 const containerLista = document.getElementById('containerListaJogadores');
                 containerLista.innerHTML = `<li class="text-center py-4 text-rose-400/80 italic text-xs">Erro ao carregar dados do servidor.</li>`;
             }
+        }
+
+        function escHtml(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // ===== CONFIRMAR PRESENÇA / FILA DE ESPERA =====
+        // ===== GOLEIROS FIXOS =====
+        // ===== AGENDA / PRÓXIMO JOGO =====
+        let agendaAtual = [];
+        let hojeServidor = '';
+        const DIAS_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+        const FRASES = [
+            'Bora suar a camisa! 💪', 'Quem faltar paga o churrasco! 🍖', 'Aquece as canelas que o jogo é pegado! 🔥',
+            'Hoje tem gol de placa! 🎯', 'Chuteira no pé e alegria no peito! ⚡', 'O craque da rodada pode ser você! 🌟',
+            'Resenha garantida depois do apito final! 🍻', 'Partiu golaço! 🚀'
+        ];
+
+        function hojeISO() {
+            if (hojeServidor) return hojeServidor;
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+        function parseISO(s) { const [a, m, d] = s.split('-').map(Number); return new Date(a, m - 1, d); }
+        function dataExtenso(s) { const d = parseISO(s); return `${DIAS_SEMANA[d.getDay()]}, ${String(d.getDate()).padStart(2, '0')} ${MESES[d.getMonth()]}`; }
+        function diasAte(s) { return Math.round((parseISO(s) - parseISO(hojeISO())) / 86400000); }
+        function dataEfetiva(g) { return g.status === 'reagendado' && g.nova_data ? g.nova_data : g.data; }
+
+        function proximoJogo() {
+            const hoje = hojeISO();
+            const ref = g => (g.data >= hoje ? g.data : dataEfetiva(g));
+            return agendaAtual
+                .filter(g => g.data >= hoje || dataEfetiva(g) >= hoje)
+                .sort((a, b) => ref(a).localeCompare(ref(b)))[0] || null;
+        }
+
+        function textoContagem(dataJogo) {
+            const n = diasAte(dataJogo);
+            if (n === 0) return '🔥 É HOJE! Separa a chuteira!';
+            if (n === 1) return '⏰ É amanhã! Já vai aquecendo!';
+            return `⏳ Faltam ${n} dias`;
+        }
+
+        function renderizarProximoJogo() {
+            const bloco = document.getElementById('blocoProximoJogo');
+            if (!bloco) return;
+            const g = proximoJogo();
+            bloco.classList.remove('hidden', 'st-confirmado', 'st-reagendado', 'st-cancelado', 'st-vazio');
+            const btnAvisar = document.getElementById('btnCompartilharJogo');
+            if (btnAvisar) btnAvisar.classList.toggle('hidden', !g);
+
+            const et = document.getElementById('pjEtiqueta');
+            const tit = document.getElementById('pjTitulo');
+            const dt = document.getElementById('pjData');
+            const ct = document.getElementById('pjContagem');
+            const msg = document.getElementById('pjMensagem');
+            const frase = FRASES[Math.floor(Math.random() * FRASES.length)];
+            const local = g && g.local ? `<span><i class="fa-solid fa-location-dot mr-1"></i>${escHtml(g.local)}</span>` : '';
+
+            if (!g) {
+                bloco.classList.add('st-vazio');
+                et.innerHTML = '<i class="fa-solid fa-calendar"></i> Próximo jogo';
+                tit.innerText = 'Em breve, nova data! 📅';
+                dt.innerHTML = '';
+                ct.innerText = '';
+                msg.innerText = 'Fique ligado: a próxima pelada será anunciada aqui.';
+                return;
+            }
+
+            if (g.status === 'confirmado') {
+                bloco.classList.add('st-confirmado');
+                et.innerHTML = '<i class="fa-solid fa-circle-check"></i> Confirmado';
+                tit.innerHTML = '<span class="pulsar">⚽</span> TEREMOS FUTEBOL!';
+                dt.innerHTML = `<span><i class="fa-regular fa-calendar mr-1"></i>${dataExtenso(g.data)}</span>${g.hora ? `<span><i class="fa-regular fa-clock mr-1"></i>${escHtml(g.hora)}</span>` : ''}${local}`;
+                ct.innerText = textoContagem(g.data);
+                msg.innerText = g.obs ? g.obs : frase;
+            } else if (g.status === 'reagendado') {
+                bloco.classList.add('st-reagendado');
+                et.innerHTML = '<i class="fa-solid fa-rotate"></i> Reagendado';
+                tit.innerHTML = '🔁 JOGO REAGENDADO!';
+                dt.innerHTML = `<span class="line-through opacity-75">${dataExtenso(g.data)}</span>
+                    <span>➜ <b>${dataExtenso(g.nova_data)}</b></span>${g.nova_hora ? `<span><i class="fa-regular fa-clock mr-1"></i>${escHtml(g.nova_hora)}</span>` : ''}${local}`;
+                ct.innerText = textoContagem(g.nova_data);
+                msg.innerText = g.obs ? g.obs : 'Mudou o dia, mas a vontade de jogar continua! 💪';
+            } else {
+                bloco.classList.add('st-cancelado');
+                et.innerHTML = '<i class="fa-solid fa-ban"></i> Sem jogo';
+                tit.innerHTML = '😢 NÃO TEREMOS FUTEBOL';
+                dt.innerHTML = `<span><i class="fa-regular fa-calendar mr-1"></i>${dataExtenso(g.data)}</span>`;
+                ct.innerText = '';
+                msg.innerText = g.obs ? g.obs : 'Descansa as pernas que na próxima tem! 🙌';
+            }
+        }
+
+        function badgeStatus(g) {
+            if (g.status === 'reagendado') return '<span class="text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded">🔁 REAGENDADO</span>';
+            if (g.status === 'cancelado') return '<span class="text-[10px] font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded">❌ CANCELADO</span>';
+            return '<span class="text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded">✅ CONFIRMADO</span>';
+        }
+
+        function renderizarListaAgenda() {
+            const ul = document.getElementById('listaAgenda');
+            const hoje = hojeISO();
+            const lista = isAdmin ? agendaAtual : agendaAtual.filter(g => g.data >= hoje || dataEfetiva(g) >= hoje);
+            if (lista.length === 0) {
+                ul.innerHTML = '<li class="text-center text-slate-500 italic py-6">Nenhum jogo agendado ainda. 📅</li>';
+                return;
+            }
+            ul.innerHTML = lista.map(g => {
+                const passado = dataEfetiva(g) < hoje;
+                const d = parseISO(g.data);
+                const acoes = isAdmin ? `
+                    <div class="flex flex-col gap-1 ml-2">
+                        <button onclick="editarJogo(${parseInt(g.id)})" class="text-amber-400 hover:text-amber-300 p-1" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="excluirJogo(${parseInt(g.id)})" class="text-rose-400 hover:text-rose-300 p-1" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                    </div>` : '';
+                return `
+                <li class="flex items-center gap-3 bg-slate-900/60 border border-slate-700/60 rounded-xl p-3 ${passado ? 'opacity-50' : ''}">
+                    ${isAdmin ? `<input type="checkbox" class="chk-agenda accent-rose-500 w-4 h-4 shrink-0 cursor-pointer" value="${parseInt(g.id)}"
+                        data-passado="${passado ? 1 : 0}" data-status="${escHtml(g.status || '')}" onchange="atualizarSelecaoAgenda()">` : ''}
+                    <div class="text-center w-12 shrink-0 bg-slate-800 rounded-lg py-1.5 border border-slate-700">
+                        <span class="block text-[9px] uppercase text-emerald-400 font-bold">${MESES[d.getMonth()]}</span>
+                        <span class="block text-xl font-black text-slate-100 leading-none">${String(d.getDate()).padStart(2, '0')}</span>
+                        <span class="block text-[9px] text-slate-400">${DIAS_SEMANA[d.getDay()].slice(0, 3)}</span>
+                    </div>
+                    <div class="flex-1 min-w-0 space-y-1">
+                        <div class="flex flex-wrap items-center gap-1.5">${badgeStatus(g)}${passado ? '<span class="text-[9px] text-slate-500">já passou</span>' : ''}</div>
+                        <p class="text-slate-200">
+                            ${g.hora ? `<i class="fa-regular fa-clock mr-1 text-slate-400"></i>${escHtml(g.hora)}` : ''}
+                            ${g.local ? `<span class="ml-2"><i class="fa-solid fa-location-dot mr-1 text-slate-400"></i>${escHtml(g.local)}</span>` : ''}
+                        </p>
+                        ${g.status === 'reagendado' ? `<p class="text-amber-300 font-semibold">➜ Nova data: ${dataExtenso(g.nova_data)}${g.nova_hora ? ' às ' + escHtml(g.nova_hora) : ''}</p>` : ''}
+                        ${g.obs ? `<p class="text-slate-400 italic">${escHtml(g.obs)}</p>` : ''}
+                    </div>
+                    ${acoes}
+                </li>`;
+            }).join('');
+            atualizarSelecaoAgenda();
+        }
+
+        function abrirPopupAgenda() {
+            document.getElementById('formAgenda').classList.toggle('hidden', !isAdmin);
+            document.getElementById('formRecorrencia').classList.toggle('hidden', !isAdmin);
+            if (isAdmin) limparFormAgenda();
+            renderizarListaAgenda();
+            const m = document.getElementById('popupAgenda');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+        function fecharPopupAgenda() {
+            const m = document.getElementById('popupAgenda');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharPopupAgenda(); });
+
+        function alternarCamposReagendar() {
+            const r = document.getElementById('agStatus').value === 'reagendado';
+            document.getElementById('agCamposReagendar').classList.toggle('hidden', !r);
+            document.getElementById('agNovaData').required = r;
+        }
+
+        function limparFormAgenda() {
+            ['agId', 'agData', 'agHora', 'agLocal', 'agNovaData', 'agNovaHora', 'agObs'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('agStatus').value = 'confirmado';
+            // Sugere o mesmo horário/local do último jogo cadastrado
+            const ult = agendaAtual[agendaAtual.length - 1];
+            if (ult) { document.getElementById('agHora').value = ult.hora || ''; document.getElementById('agLocal').value = ult.local || ''; }
+            document.getElementById('formAgendaTitulo').innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Novo jogo';
+            alternarCamposReagendar();
+        }
+
+        function editarJogo(id) {
+            const g = agendaAtual.find(x => parseInt(x.id) === id);
+            if (!g) return;
+            document.getElementById('agId').value = g.id;
+            document.getElementById('agData').value = g.data;
+            document.getElementById('agHora').value = g.hora || '';
+            document.getElementById('agLocal').value = g.local || '';
+            document.getElementById('agStatus').value = g.status || 'confirmado';
+            document.getElementById('agNovaData').value = g.nova_data || '';
+            document.getElementById('agNovaHora').value = g.nova_hora || '';
+            document.getElementById('agObs').value = g.obs || '';
+            document.getElementById('formAgendaTitulo').innerHTML = '<i class="fa-solid fa-pen-to-square mr-1"></i> Editando jogo';
+            alternarCamposReagendar();
+            document.getElementById('formAgenda').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        async function salvarJogo(e) {
+            e.preventDefault();
+            const v = id => document.getElementById(id).value;
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    acao: 'salvar_jogo', id: parseInt(v('agId')) || 0, data: v('agData'), hora: v('agHora'),
+                    local: v('agLocal'), status: v('agStatus'), nova_data: v('agNovaData'), nova_hora: v('agNovaHora'), obs: v('agObs')
+                })
+            });
+            const data = await res.json();
+            if (!data.sucesso) { alert(data.mensagem || 'Erro ao salvar.'); return; }
+            await carregarDados();
+            limparFormAgenda();
+            renderizarListaAgenda();
+        }
+
+        // ===== JOGOS SEMANAIS =====
+        // ===== EXCLUSÃO EM MASSA DA AGENDA =====
+        function atualizarSelecaoAgenda() {
+            const barra = document.getElementById('barraSelecaoAgenda');
+            const todos = [...document.querySelectorAll('.chk-agenda')];
+            barra.classList.toggle('hidden', !isAdmin || todos.length === 0);
+            const marcados = todos.filter(c => c.checked);
+            document.getElementById('qtdSelecionadosAgenda').innerText = marcados.length;
+            document.getElementById('btnExcluirSelecionados').disabled = marcados.length === 0;
+            const chkT = document.getElementById('chkTodosAgenda');
+            chkT.checked = todos.length > 0 && marcados.length === todos.length;
+            chkT.indeterminate = marcados.length > 0 && marcados.length < todos.length;
+        }
+
+        function selecionarTodosAgenda(marcar) {
+            document.querySelectorAll('.chk-agenda').forEach(c => c.checked = marcar);
+            atualizarSelecaoAgenda();
+        }
+
+        function selecionarAgendaPor(tipo) {
+            document.querySelectorAll('.chk-agenda').forEach(c => {
+                if (tipo === 'futuros') c.checked = c.dataset.passado === '0';
+                else if (tipo === 'passados') c.checked = c.dataset.passado === '1';
+                else if (tipo === 'cancelados') c.checked = c.dataset.status === 'cancelado';
+            });
+            atualizarSelecaoAgenda();
+        }
+
+        async function excluirSelecionadosAgenda() {
+            const ids = [...document.querySelectorAll('.chk-agenda:checked')].map(c => parseInt(c.value));
+            if (ids.length === 0) return;
+            if (!confirm(`Excluir ${ids.length} jogo(s) da agenda?\n\nEssa ação não pode ser desfeita.`)) return;
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'excluir_jogos', ids: ids })
+            });
+            const data = await res.json();
+            alert(data.mensagem || (data.sucesso ? 'Pronto!' : 'Erro ao excluir.'));
+            await carregarDados();
+            renderizarListaAgenda();
+        }
+
+        // ===== JOGOS SEMANAIS =====
+        function atualizarResumoRecorrencia() {
+            const ini = document.getElementById('recInicio').value;
+            const n = parseInt(document.getElementById('recSemanas').value);
+            const el = document.getElementById('recResumo');
+            if (!ini) { el.innerText = ''; return; }
+            const fim = parseISO(ini);
+            fim.setDate(fim.getDate() + 7 * (n - 1));
+            const fimISO = `${fim.getFullYear()}-${String(fim.getMonth() + 1).padStart(2, '0')}-${String(fim.getDate()).padStart(2, '0')}`;
+            el.innerText = `Toda ${DIAS_SEMANA[parseISO(ini).getDay()].toLowerCase()}, de ${dataExtenso(ini)} até ${dataExtenso(fimISO)} (${n} jogos)`;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            ['recInicio', 'recSemanas'].forEach(id => document.getElementById(id).addEventListener('change', atualizarResumoRecorrencia));
+        });
+
+        async function gerarRecorrencia(e) {
+            e.preventDefault();
+            const v = id => document.getElementById(id).value;
+            atualizarResumoRecorrencia();
+            if (!confirm(document.getElementById('recResumo').innerText + '\n\nDatas já cadastradas não serão alteradas. Gerar?')) return;
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'gerar_recorrencia', inicio: v('recInicio'), semanas: parseInt(v('recSemanas')), hora: v('recHora'), local: v('recLocal') })
+            });
+            const data = await res.json();
+            alert(data.mensagem || (data.sucesso ? 'Pronto!' : 'Erro.'));
+            if (data.sucesso) {
+                await carregarDados();
+                renderizarListaAgenda();
+            }
+        }
+
+        async function excluirJogo(id) {
+            if (!confirm('Excluir este jogo da agenda?')) return;
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'excluir_jogo', id: id })
+            });
+            const data = await res.json();
+            if (!data.sucesso) alert(data.mensagem || 'Erro ao excluir.');
+            await carregarDados();
+            renderizarListaAgenda();
+        }
+
+        // ===== SORTEIO DE TIMES =====
+        let ultimoSorteio = null;
+        let sorteando = false;
+        const DADO_FACES = {
+            1: [[32, 32]],
+            2: [[20, 20], [44, 44]],
+            3: [[20, 20], [32, 32], [44, 44]],
+            4: [[20, 20], [44, 20], [20, 44], [44, 44]],
+            5: [[20, 20], [44, 20], [32, 32], [20, 44], [44, 44]],
+            6: [[20, 18], [44, 18], [20, 32], [44, 32], [20, 46], [44, 46]],
+        };
+        function desenharDado(face) {
+            const g = document.getElementById('dadoPontos');
+            if (!g) return;
+            g.innerHTML = DADO_FACES[face].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5.5"/>`).join('');
+        }
+        document.addEventListener('DOMContentLoaded', () => desenharDado(5));
+
+        function atualizarBlocoSorteio() {
+            const bloco = document.getElementById('blocoSorteio');
+            if (bloco) bloco.classList.toggle('hidden', !isAdmin);
+            const ver = document.getElementById('btnVerUltimoSorteio');
+            if (ver) ver.classList.toggle('hidden', !ultimoSorteio);
+            // Público: botão VER SORTEIO só aparece quando há sorteio confirmado
+            const pub = document.getElementById('blocoVerSorteio');
+            if (pub) pub.classList.toggle('hidden', isAdmin || !(ultimoSorteio && ultimoSorteio.confirmado));
+
+            // Link direto (?sorteio=1): abre o popup automaticamente na primeira carga
+            if (!window.__sorteioLinkTratado) {
+                window.__sorteioLinkTratado = true;
+                const p = new URLSearchParams(location.search);
+                if (p.has('sorteio') || location.hash === '#sorteio') {
+                    if (ultimoSorteio && (isAdmin || ultimoSorteio.confirmado)) abrirPopupSorteio();
+                    else alert('Ainda não há sorteio confirmado para exibir.');
+                }
+            }
+        }
+
+        const espera = ms => new Promise(r => setTimeout(r, ms));
+
+        async function sortearTimes() {
+            if (sorteando) return;
+            sorteando = true;
+            fecharPopupSorteio();
+            const btn = document.getElementById('btnSortear');
+            const svg = document.getElementById('dadoSvg');
+            const txt = document.getElementById('txtSortear');
+            btn.disabled = true;
+            svg.classList.add('dado-girando');
+            txt.innerText = 'SORTEANDO...';
+            const troca = setInterval(() => desenharDado(1 + Math.floor(Math.random() * 6)), 90);
+
+            try {
+                const [res] = await Promise.all([
+                    fetchSeguro(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ acao: 'sortear_times' })
+                    }),
+                    espera(1600) // suspense mínimo da animação
+                ]);
+                const data = await res.json();
+                if (!data.sucesso) {
+                    alert(data.mensagem || 'Erro ao sortear.');
+                } else {
+                    ultimoSorteio = data.sorteio;
+                    atualizarBlocoSorteio();
+                    abrirPopupSorteio();
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                clearInterval(troca);
+                desenharDado(1 + Math.floor(Math.random() * 6));
+                svg.classList.remove('dado-girando');
+                txt.innerText = 'SORTEAR TIMES';
+                btn.disabled = false;
+                sorteando = false;
+            }
+        }
+
+        const CORES_TIMES = [
+            'border-sky-500/40 bg-sky-500/5 text-sky-300',
+            'border-rose-500/40 bg-rose-500/5 text-rose-300',
+            'border-amber-500/40 bg-amber-500/5 text-amber-300',
+            'border-emerald-500/40 bg-emerald-500/5 text-emerald-300',
+            'border-fuchsia-500/40 bg-fuchsia-500/5 text-fuchsia-300',
+            'border-cyan-500/40 bg-cyan-500/5 text-cyan-300',
+        ];
+
+        function abrirPopupSorteio() {
+            const s = ultimoSorteio;
+            if (!s) return;
+            const cont = document.getElementById('sorteioTimes');
+            cont.innerHTML = (s.times || []).map((t, i) => `
+                <div class="border rounded-xl p-3 ${CORES_TIMES[i % CORES_TIMES.length]}">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-extrabold text-sm">${escHtml(t.nome)}</span>
+                        <span class="text-[10px] text-slate-400">${(t.jogadores || []).length} na linha${t.incompleto ? ' · <span class="text-amber-300">incompleto</span>' : ''}</span>
+                    </div>
+                    <ol class="space-y-1 text-xs text-slate-200">
+                        ${(t.jogadores || []).map((j, k) => {
+                            const conv = (t.convidados || []).includes(j);
+                            return `<li class="flex gap-2 items-center"><span class="text-slate-500 w-4 text-right">${k + 1}.</span>${escHtml(j)}${conv ? ' <span class="text-[9px] font-bold text-violet-300 bg-violet-500/15 border border-violet-500/30 px-1 rounded">CONVIDADO</span>' : ''}</li>`;
+                        }).join('')}
+                    </ol>
+                </div>`).join('');
+
+            const res = s.reservas || [];
+            if (res.length) {
+                cont.innerHTML += `<div class="sm:col-span-2 border border-slate-600/60 bg-slate-900/40 rounded-xl p-3 text-xs">
+                    <span class="font-bold text-slate-300"><i class="fa-solid fa-chair mr-1 text-slate-400"></i> Próximos / Reservas (${res.length}):</span>
+                    ${(s.reservas_convidados || []).length ? '<span class="text-[10px] text-violet-300 ml-1">(convidados ficam por último)</span>' : ''}
+                    <span class="text-slate-200">${res.map(escHtml).join(', ')}</span></div>`;
+            }
+
+            const rep = s.repeticoes || [];
+            document.getElementById('sorteioRepeticoes').classList.toggle('hidden', !isAdmin);
+            document.getElementById('sorteioRepeticoes').innerHTML = rep.length === 0
+                ? `<div class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-lg p-2.5 text-center"><i class="fa-solid fa-circle-check mr-1"></i> Nenhuma dupla repetida dos sorteios anteriores!</div>`
+                : `<div class="bg-amber-500/10 border border-amber-500/20 text-amber-200 rounded-lg p-2.5">
+                       <p class="font-bold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Repetições inevitáveis (menor número possível):</p>
+                       <p>${rep.map(r => `${escHtml(r.a)} + ${escHtml(r.b)} <span class="text-amber-400/70">(${r.vezes}x antes)</span>`).join(' · ')}</p>
+                   </div>`;
+
+            const st = document.getElementById('sorteioStatus');
+            st.innerText = s.confirmado ? 'CONFIRMADO' : 'NÃO CONFIRMADO';
+            st.className = 'text-[10px] px-2 py-0.5 rounded-full border ' + (s.confirmado
+                ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                : 'bg-amber-500/10 text-amber-300 border-amber-500/30');
+            // Público vê só o Compartilhar; admin vê todos os botões
+            document.getElementById('btnConfirmarSorteio').classList.toggle('hidden', !isAdmin || !!s.confirmado);
+            document.getElementById('btnSortearNovo').classList.toggle('hidden', !isAdmin);
+            document.getElementById('sorteioInfo').innerText = `Sorteado em ${formatarData(s.criado_em)}${s.por ? ' por ' + s.por : ''}`;
+
+            const m = document.getElementById('popupSorteio');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function fecharPopupSorteio() {
+            const m = document.getElementById('popupSorteio');
+            if (!m) return;
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharPopupSorteio(); });
+
+        // Texto do próximo jogo (reaproveitado no sorteio e no aviso)
+        function textoProximoJogo() {
+            const pj = proximoJogo();
+            if (!pj) return '';
+            const relogio = '\u{23F0}', pino = '\u{1F4CD}', ok = '\u{2705}', reag = '\u{1F501}', nao = '\u{274C}', seta = '\u{27A1}\u{FE0F}', cal = '\u{1F4C5}';
+            let t = '';
+            if (pj.status === 'confirmado') {
+                t += `${ok} *Teremos futebol!*\n`;
+                t += `${cal} ${dataExtenso(pj.data)}${pj.hora ? `  ${relogio} ${pj.hora}` : ''}\n`;
+            } else if (pj.status === 'reagendado') {
+                t += `${reag} *Jogo reagendado!*\n`;
+                t += `~${dataExtenso(pj.data)}~ ${seta} *${dataExtenso(pj.nova_data)}*${pj.nova_hora ? `  ${relogio} ${pj.nova_hora}` : ''}\n`;
+            } else {
+                t += `${nao} *Não teremos futebol* em ${dataExtenso(pj.data)}\n`;
+            }
+            if (pj.local && pj.status !== 'cancelado') t += `${pino} ${pj.local}\n`;
+            if (pj.obs) t += `_${pj.obs}_\n`;
+            if (pj.status !== 'cancelado') {
+                const n = diasAte(dataEfetiva(pj));
+                if (n === 0) t += `\u{1F525} *É HOJE!*\n`;
+                else if (n === 1) t += `\u{23F3} *É amanhã!*\n`;
+                else if (n > 1) t += `\u{23F3} Faltam ${n} dias\n`;
+            }
+            return t;
+        }
+
+        function compartilharProximoJogo() {
+            const pj = proximoJogo();
+            if (!pj) return;
+            const bola = '\u{26BD}\u{FE0F}', mega = '\u{1F4E2}', link = '\u{1F517}', mao = '\u{270B}', forca = '\u{1F4AA}', abraco = '\u{1F64C}';
+            const base = location.href.split('#')[0].split('?')[0];
+            let txt;
+            if (pj.status === 'cancelado') {
+                txt = `${mega} *AVISO — FUTSAL DA FIRMA*\n\n` + textoProximoJogo() +
+                    `\nDescansa as pernas que na próxima tem! ${abraco}\n` +
+                    `\n${link} ${base}`;
+            } else {
+                txt = `${bola} *BORA PRO FUTSAL!* ${bola}\n\n` + textoProximoJogo() +
+                    `\n${mao} *Confirme sua presença:*\n${base}\n` +
+                    `\nQuem faltar paga o churrasco! ${forca}`;
+            }
+            abrirWhatsApp(txt);
+        }
+
+        function abrirWhatsApp(txt) {
+            window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(txt), '_blank');
+        }
+
+        function textoSorteio() {
+            const s = ultimoSorteio;
+            if (!s) return '';
+            // Emojis escritos como códigos Unicode (independe da codificação do arquivo/servidor)
+            const E = {
+                bola:     '\u{26BD}\u{FE0F}',  // ⚽
+                trofeu:   '\u{1F3C6}',         // 🏆
+                calend:   '\u{1F4C5}',         // 📅
+                pessoa:   '\u{1F464}',         // 👤
+                convid:   '\u{1F39F}\u{FE0F}', // 🎟️
+                alerta:   '\u{26A0}\u{FE0F}',  // ⚠️
+                link:     '\u{1F517}',         // 🔗
+                fogo:     '\u{1F525}',         // 🔥
+                // Times 1 e 2 = verde 🟢 | Time 3 = amarelo 🟡 | Time 4 em diante = laranja 🟠
+                corTime:  i => i <= 1 ? '\u{1F7E2}' : (i === 2 ? '\u{1F7E1}' : '\u{1F7E0}'),
+            };
+            const num = n => String(n).split('').map(d => d + '\u{FE0F}\u{20E3}').join(''); // 1️⃣ 2️⃣ ...
+
+            let txt = `${E.bola} *TIMES SORTEADOS* ${E.bola}\n`;
+            txt += `${E.calend} ${formatarData(s.criado_em)}\n`;
+            (s.times || []).forEach((t, i) => {
+                const cor = E.corTime(i);
+                const qtd = (t.jogadores || []).length;
+                txt += `\n${cor} *${t.nome.toUpperCase()}*${t.incompleto ? ` ${E.alerta} _incompleto_` : ''}\n`;
+                (t.jogadores || []).forEach((j, k) => {
+                    const conv = (t.convidados || []).includes(j);
+                    txt += `${num(k + 1)} ${j}${conv ? ` ${E.convid} _convidado_` : ''}\n`;
+                });
+            });
+            if ((s.reservas || []).length) txt += `\n${E.pessoa} *Reservas:* ${s.reservas.join(', ')}\n`;
+            txt += `\n${E.fogo} Bom jogo a todos! ${E.trofeu}\n`;
+
+            // Próximo jogo (da agenda)
+            const pjTxt = textoProximoJogo();
+            if (pjTxt) txt += `\n\u{1F4C5} *PRÓXIMO JOGO*\n` + pjTxt;
+
+            const base = location.href.split('#')[0].split('?')[0];
+            txt += `\n${E.bola} *Ver o sorteio:* ${base}?sorteio=1\n`;
+            txt += `${E.link} *Página do futsal:* ${base}`;
+            return txt;
+        }
+
+        function compartilharSorteio() {
+            const txt = textoSorteio();
+            if (!txt) return;
+            if (ultimoSorteio && !ultimoSorteio.confirmado && isAdmin &&
+                !confirm('Este sorteio ainda NÃO foi confirmado. Compartilhar mesmo assim?\n\n(A página pública só mostra sorteios confirmados.)')) return;
+            // api.whatsapp.com lida melhor com emojis que o atalho wa.me
+            window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(txt), '_blank');
+        }
+
+        async function confirmarSorteio() {
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'confirmar_sorteio' })
+            });
+            const data = await res.json();
+            if (data.sucesso && ultimoSorteio) ultimoSorteio.confirmado = true;
+            alert(data.mensagem || (data.sucesso ? 'Confirmado!' : 'Erro.'));
+            abrirPopupSorteio();
+        }
+
+        async function zerarMemoriaSorteio() {
+            if (!confirm('Zerar a memória de duplas? Os próximos sorteios não vão mais considerar quem já jogou junto.')) return;
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'zerar_memoria_sorteio' })
+            });
+            const data = await res.json();
+            alert(data.mensagem || 'Pronto.');
+        }
+
+        let slotFotoAtual = 0;
+
+        function renderizarGoleiros(goleiros) {
+            goleirosAtuais = goleiros;
+            const ul = document.getElementById('containerGoleiros');
+            if (!ul) return;
+            ul.innerHTML = '';
+            [1, 2].forEach(slot => {
+                const g = goleiros.find(x => parseInt(x.slot) === slot) || { slot, nome: '', foto: '' };
+                const temNome = !!(g.nome && g.nome.trim());
+                const temFoto = !!g.foto;
+                const vagaVazia = !temNome && !temFoto;
+                const foto = g.foto && /^fotos\/[A-Za-z0-9_]+\.(jpg|png|webp)$/.test(g.foto)
+                    ? `<button type="button" onclick="abrirFotoGoleiro(${slot})" title="Ver foto" class="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-400/60">
+                           <img src="${escHtml(g.foto)}" alt="" class="w-11 h-11 rounded-full object-cover border-2 border-sky-400/60 hover:scale-110 transition cursor-zoom-in">
+                       </button>`
+                    : `<div class="w-11 h-11 rounded-full bg-slate-800 border-2 border-dashed border-sky-500/40 flex items-center justify-center text-sky-400/70"><i class="fa-solid fa-user"></i></div>`;
+
+                let acoes = '';
+                if (isAdmin) {
+                    acoes = `
+                        <div class="flex items-center gap-1 ml-auto border-l border-slate-700/60 pl-2">
+                            <button onclick="editarNomeGoleiro(${slot}, ${escHtml(JSON.stringify(g.nome || ''))})" class="text-amber-400/80 hover:text-amber-300 p-1 rounded hover:bg-slate-700/50 transition" title="Editar nome">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="escolherFotoGoleiro(${slot})" class="text-sky-400/80 hover:text-sky-300 p-1 rounded hover:bg-slate-700/50 transition" title="Enviar foto">
+                                <i class="fa-solid fa-camera text-xs"></i>
+                            </button>
+                            ${g.foto ? `<button onclick="removerFotoGoleiro(${slot})" class="text-rose-400/80 hover:text-rose-300 p-1 rounded hover:bg-slate-700/50 transition" title="Remover foto">
+                                <i class="fa-solid fa-image text-xs"></i><i class="fa-solid fa-xmark text-[8px]"></i>
+                            </button>` : ''}
+                        </div>`;
+                }
+
+                const li = document.createElement('li');
+                li.className = 'flex items-center gap-3 bg-sky-500/5 px-3 py-2.5 rounded-xl border border-sky-500/25';
+                li.innerHTML = `
+                    ${foto}
+                    <div class="min-w-0">
+                        <span class="text-[10px] font-bold text-sky-300 bg-sky-500/10 px-1.5 py-0.5 rounded">GOLEIRO FIXO ${slot}</span>
+                        ${temNome ? `<span class="block font-medium truncate mt-0.5 text-slate-200">${escHtml(g.nome)}</span>` : (vagaVazia ? `<span class="block truncate mt-0.5 text-slate-500 italic text-xs">Vaga aberta</span>` : '')}
+                    </div>
+                    ${acoes}`;
+                ul.appendChild(li);
+            });
+        }
+
+
+        // ===== POPUP DA FOTO DO GOLEIRO =====
+        let goleirosAtuais = [];
+        function abrirFotoGoleiro(slot) {
+            const g = goleirosAtuais.find(x => parseInt(x.slot) === slot);
+            if (!g || !g.foto) return;
+            document.getElementById('popupFotoImg').src = g.foto;
+            document.getElementById('popupFotoTitulo').innerText = `GOLEIRO FIXO ${slot}`;
+            const nomePopup = (g.nome || '').trim();
+            const elNome = document.getElementById('popupFotoNome');
+            elNome.innerText = nomePopup;
+            elNome.classList.toggle('hidden', !nomePopup);
+            const m = document.getElementById('popupFotoGoleiro');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+        function fecharFotoGoleiro() {
+            const m = document.getElementById('popupFotoGoleiro');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+            document.getElementById('popupFotoImg').src = '';
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharFotoGoleiro(); });
+
+        async function editarNomeGoleiro(slot, atual) {
+            const nome = prompt(`Nome do GOLEIRO FIXO ${slot} (deixe vazio para liberar a vaga):`, atual);
+            if (nome === null) return;
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'salvar_goleiro', slot: slot, nome: nome.trim() })
+            });
+            const data = await res.json();
+            if (!data.sucesso) alert(data.mensagem || 'Erro ao salvar goleiro.');
+            carregarDados();
+        }
+
+        function escolherFotoGoleiro(slot) {
+            slotFotoAtual = slot;
+            const inp = document.getElementById('inputFotoGoleiro');
+            inp.value = '';
+            inp.click();
+        }
+
+        // Recorte quadrado central, até 1024x1024 (sem ampliar fotos menores), antes de enviar
+        function redimensionarImagem(file, tamanhoMax = 1024) {
+            return new Promise((resolve, reject) => {
+                const leitor = new FileReader();
+                leitor.onerror = () => reject(new Error('Falha ao ler o arquivo.'));
+                leitor.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('Arquivo não é uma imagem válida.'));
+                    img.onload = () => {
+                        const lado = Math.min(img.width, img.height);
+                        const tamanho = Math.min(lado, tamanhoMax);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = tamanho;
+                        canvas.height = tamanho;
+                        const ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+                        ctx.drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, tamanho, tamanho);
+                        resolve(canvas.toDataURL('image/jpeg', 0.92));
+                    };
+                    img.src = leitor.result;
+                };
+                leitor.readAsDataURL(file);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('inputFotoGoleiro').addEventListener('change', async (ev) => {
+                const file = ev.target.files[0];
+                if (!file || !slotFotoAtual) return;
+                if (file.size > 10 * 1024 * 1024) { alert('Imagem muito grande (máx. 10 MB).'); return; }
+                try {
+                    const dataUrl = await redimensionarImagem(file);
+                    const res = await fetchSeguro(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ acao: 'foto_goleiro', slot: slotFotoAtual, imagem: dataUrl })
+                    });
+                    const data = await res.json();
+                    if (!data.sucesso) alert(data.mensagem || 'Erro ao enviar foto.');
+                } catch (err) {
+                    alert(err.message || 'Erro ao processar a imagem.');
+                }
+                carregarDados();
+            });
+        });
+
+        async function removerFotoGoleiro(slot) {
+            if (!confirm(`Remover a foto do GOLEIRO FIXO ${slot}?`)) return;
+            await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'remover_foto_goleiro', slot: slot })
+            });
+            carregarDados();
+        }
+
+        async function confirmarPresenca(e) {
+            e.preventDefault();
+            const input = document.getElementById('inputConfirmarNome');
+            const btn = document.getElementById('btnConfirmarPresenca');
+            const msg = document.getElementById('msgConfirmarPresenca');
+            const nome = input.value.trim();
+            if (nome.length < 2) return;
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ acao: 'confirmar_presenca', nome: nome })
+                });
+                const data = await res.json();
+                msg.innerText = data.mensagem || (data.sucesso ? 'Pedido enviado!' : 'Erro ao enviar.');
+                msg.className = 'text-xs font-medium p-2 rounded-lg border ' + (data.sucesso
+                    ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                    : 'bg-rose-500/10 text-rose-300 border-rose-500/20');
+                if (data.sucesso) input.value = '';
+                carregarDados();
+            } catch (err) {
+                msg.innerText = 'Erro ao conectar com o servidor.';
+                msg.className = 'text-xs font-medium p-2 rounded-lg border bg-rose-500/10 text-rose-300 border-rose-500/20';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function renderizarFila(fila, total) {
+            const badgePub = document.getElementById('badgeFilaPublica');
+            if (total > 0) {
+                badgePub.innerText = `${total} aguardando`;
+                badgePub.classList.remove('hidden');
+            } else {
+                badgePub.classList.add('hidden');
+            }
+
+            const ul = document.getElementById('listaFilaEspera');
+            if (!ul) return;
+            document.getElementById('badgeFilaEspera').innerText = fila.length;
+            document.getElementById('btnAceitarTodos').classList.toggle('hidden', fila.length < 2);
+            ul.innerHTML = '';
+            if (fila.length === 0) {
+                ul.innerHTML = `<li class="text-slate-500 italic">Nenhum pedido aguardando.</li>`;
+                return;
+            }
+            fila.forEach((f, i) => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60';
+                li.innerHTML = `
+                    <div>
+                        <span class="text-[10px] text-slate-500 mr-1">${i + 1}º</span>
+                        <span class="text-slate-200 font-medium">${escHtml(f.nome)}</span>
+                        <span class="text-[10px] text-slate-500 block">${formatarData(f.criado_em)}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="responderFila(${parseInt(f.id)}, true)" class="text-xs bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 px-2 py-1 rounded transition flex items-center gap-1">
+                            <i class="fa-solid fa-check"></i> Aceitar
+                        </button>
+                        <button onclick="responderFila(${parseInt(f.id)}, true, true)" class="text-xs bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 px-2 py-1 rounded transition flex items-center gap-1" title="Aceitar como convidado">
+                            <i class="fa-solid fa-user-tag"></i> Convidado
+                        </button>
+                        <button onclick="responderFila(${parseInt(f.id)}, false)" class="text-rose-400 hover:text-rose-300 p-1 rounded transition" title="Recusar">
+                            <i class="fa-solid fa-xmark text-xs"></i>
+                        </button>
+                    </div>`;
+                ul.appendChild(li);
+            });
+        }
+
+        async function responderFila(id, aceitar, convidado = false) {
+            if (!aceitar && !confirm('Recusar este pedido?')) return;
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: aceitar ? 'aceitar_fila' : 'recusar_fila', id: id, convidado: !!convidado })
+            });
+            const data = await res.json();
+            if (!data.sucesso) alert(data.mensagem || 'Erro.');
+            carregarDados();
+        }
+
+        async function aceitarTodaFila() {
+            if (!confirm('Aceitar todos os pedidos da fila?')) return;
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'aceitar_toda_fila' })
+            });
+            const data = await res.json();
+            if (data.mensagem) alert(data.mensagem);
+            carregarDados();
+        }
+
+        async function salvarMaxJogadores(e) {
+            e.preventDefault();
+            const valor = parseInt(document.getElementById('inputMaxJogadores').value);
+            if (isNaN(valor) || valor < 0) { alert('Informe um número válido (0 = sem limite).'); return; }
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'salvar_max_jogadores', valor: valor })
+            });
+            const data = await res.json();
+            alert(data.mensagem || (data.sucesso ? 'Salvo!' : 'Erro ao salvar.'));
+            carregarDados();
+        }
+
+        // Atualiza automaticamente a fila para o admin (sem atrapalhar quem está digitando)
+        setInterval(() => {
+            const chk = document.getElementById('chkAutoAtualizar');
+            const ativo = document.activeElement;
+            const digitando = ativo && (ativo.tagName === 'INPUT' || ativo.tagName === 'TEXTAREA');
+            if (isAdmin && chk && chk.checked && !digitando && !document.hidden) carregarDados();
+        }, 15000);
+
+        function brl(v) {
+            return 'R$ ' + parseFloat(v || 0).toFixed(2).replace('.', ',');
+        }
+
+        function formatarData(s) {
+            if (!s) return '';
+            const [d, h] = s.split(' ');
+            const [a, m, dia] = d.split('-');
+            return `${dia}/${m}/${a} ${(h || '').slice(0, 5)}`;
+        }
+
+        function renderizarHistorico(historico) {
+            const ul = document.getElementById('listaHistoricoEtapas');
+            if (!ul) return;
+            document.getElementById('badgeHistorico').innerText = historico.length;
+            ul.innerHTML = '';
+            if (historico.length === 0) {
+                ul.innerHTML = `<li class="text-slate-500 italic">Nenhuma etapa finalizada ainda.</li>`;
+                return;
+            }
+            historico.forEach(et => {
+                const jogs = et.jogadores || [];
+                const pags = et.pagamentos_quadra || [];
+                const li = document.createElement('li');
+                li.className = 'bg-slate-900/60 border border-slate-700/60 rounded-xl';
+                li.innerHTML = `
+                    <details>
+                        <summary class="cursor-pointer px-3 py-2 flex flex-wrap justify-between items-center gap-2">
+                            <span class="text-slate-200 font-medium"><i class="fa-solid fa-flag-checkered text-sky-400/80 mr-1"></i>Etapa #${et.id} — ${formatarData(et.finalizada_em)}</span>
+                            <span class="flex gap-2 font-mono text-[11px]">
+                                <span class="text-emerald-400">+${brl(et.arrecadado)}</span>
+                                <span class="text-amber-400">-${brl(et.pago_quadra)}</span>
+                                <span class="text-slate-300">Saldo: ${brl(et.saldo_novo)}</span>
+                            </span>
+                        </summary>
+                        <div class="px-3 pb-3 pt-1 grid grid-cols-1 md:grid-cols-2 gap-3 border-t border-slate-700/50">
+                            <div>
+                                <span class="text-[10px] uppercase text-slate-400">Jogadores (${jogs.length})</span>
+                                <ul class="mt-1 space-y-1">${jogs.map(j => `
+                                    <li class="flex justify-between"><span class="text-slate-300">${escHtml(j.nome)}</span>
+                                    <span class="font-mono ${parseFloat(j.valor_pago) > 0 ? 'text-emerald-400' : 'text-rose-400'}">${brl(j.valor_pago)}</span></li>`).join('') || '<li class="text-slate-500 italic">—</li>'}
+                                </ul>
+                            </div>
+                            <div>
+                                <span class="text-[10px] uppercase text-slate-400">Pagamentos da Quadra (${pags.length})</span>
+                                <ul class="mt-1 space-y-1">${pags.map(p => `
+                                    <li class="flex justify-between"><span class="text-slate-300">${escHtml(p.descricao)}</span>
+                                    <span class="font-mono text-amber-400">${brl(p.valor)}</span></li>`).join('') || '<li class="text-slate-500 italic">—</li>'}
+                                </ul>
+                                <p class="text-[10px] text-slate-500 mt-2">Saldo anterior: ${brl(et.saldo_anterior)}${et.finalizada_por ? ' · por ' + escHtml(et.finalizada_por) : ''}</p>
+                            </div>
+                        </div>
+                    </details>`;
+                ul.appendChild(li);
+            });
+        }
+
+        async function salvarValorPendencia(e) {
+            e.preventDefault();
+            const valor = parseFloat(document.getElementById('inputValorPendencia').value);
+            if (isNaN(valor) || valor <= 0) { alert('Informe um valor válido.'); return; }
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'salvar_valor_pendencia', valor: valor })
+            });
+            const data = await res.json();
+            alert(data.mensagem || (data.sucesso ? 'Salvo!' : 'Erro ao salvar.'));
+            carregarDados();
         }
 
         function renderizarAdmins(admins) {
@@ -805,7 +2081,7 @@
                 let btnExcluir = '';
                 if (admins.length > 1) {
                     btnExcluir = `
-                        <button onclick="excluirAdmin(${adm.id}, '${adm.usuario}')" class="text-rose-400 hover:text-rose-300 transition" title="Excluir admin">
+                        <button onclick="excluirAdmin(${parseInt(adm.id)}, ${escHtml(JSON.stringify(String(adm.usuario ?? '')))})" class="text-rose-400 hover:text-rose-300 transition" title="Excluir admin">
                             <i class="fa-solid fa-user-minus"></i>
                         </button>
                     `;
@@ -816,7 +2092,7 @@
                 li.innerHTML = `
                     <span class="text-slate-200 font-medium flex items-center gap-2">
                         <i class="fa-solid fa-user-shield text-amber-400/70 text-xs"></i>
-                        ${adm.usuario}
+                        ${escHtml(adm.usuario)}
                         ${adm.usuario === usuarioLogado ? '<span class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded">(Você)</span>' : ''}
                     </span>
                     ${btnExcluir}
@@ -870,12 +2146,40 @@
             const input = document.getElementById('novoJogadorNome');
             const nome = input.value.trim();
             if (!nome) return;
-            await fetchSeguro(API_URL, {
+            const res = await fetchSeguro(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ acao: 'adicionar_jogador', nome: nome, valor: 20.00 })
+                body: JSON.stringify({ acao: 'adicionar_jogador', nome: nome, valor: 0 })
             });
+            const data = await res.json();
+            if (!data.sucesso) { alert(data.mensagem || 'Erro ao adicionar jogador.'); return; }
             input.value = '';
+            carregarDados();
+        }
+
+        async function alternarConvidado(id, marcar) {
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'marcar_convidado', id: id, convidado: marcar })
+            });
+            const data = await res.json();
+            if (!data.sucesso) alert(data.mensagem || 'Erro ao atualizar.');
+            carregarDados();
+        }
+
+        async function renomearJogador(id, atual) {
+            const novo = prompt('Editar nome do jogador:', atual);
+            if (novo === null) return;
+            const nome = novo.trim();
+            if (!nome || nome === atual) return;
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'renomear_jogador', id: id, nome: nome })
+            });
+            const data = await res.json();
+            if (!data.sucesso) alert(data.mensagem || 'Erro ao renomear.');
             carregarDados();
         }
 
@@ -972,13 +2276,17 @@
         }
 
         async function finalizarEtapa() {
-            if (!confirm('Deseja realmente FINALIZAR A ETAPA?\n\n- A lista de presença atual será limpa.\n- Jogadores sem pagamento terão suas dívidas migradas para o histórico de pendências.\n- O saldo restante será transferido para o Saldo Caixa.')) return;
-            await fetchSeguro(API_URL, {
+            const qtdFila = document.querySelectorAll('#listaFilaEspera button[onclick^="responderFila"][onclick$="true)"]').length;
+            const avisoFila = qtdFila > 0 ? `\n- ${qtdFila} pedido(s) na Fila de Espera serão APAGADOS.` : '';
+            if (!confirm('Deseja realmente FINALIZAR A ETAPA?\n\n- A lista de presença atual será limpa.\n- Jogadores sem pagamento terão suas dívidas migradas para o histórico de pendências.\n- O saldo restante será transferido para o Saldo Caixa.' + avisoFila)) return;
+            const res = await fetchSeguro(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ acao: 'finalizar_etapa' })
             });
-            alert('Nova etapa iniciada com sucesso!');
+            const data = await res.json();
+            const extra = data.fila_descartada > 0 ? `\n${data.fila_descartada} pedido(s) da fila foram apagados.` : '';
+            alert(data.sucesso ? 'Nova etapa iniciada com sucesso!' + extra : (data.mensagem || 'Erro ao finalizar etapa.'));
             carregarDados();
         }
 

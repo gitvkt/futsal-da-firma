@@ -1,89 +1,101 @@
 # Changelog
 
 Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
-
-O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
-e este projeto adere ao [Versioning Semântico](https://semver.org/lang/pt-BR/2.0.0/).
+O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e o projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/2.0.0/).
 
 ## [Unreleased]
 
 ### A fazer
-- Implementar exportação do relatório financeiro em PDF/CSV.
+- Exportação do relatório financeiro em PDF/CSV.
+- Equilíbrio de times por nível técnico no sorteio.
 
 ---
 
-[5.0.1] - 2026-07-28
-🚀 Melhorias & Novas Funcionalidades
-Instalador Web Automatizado:
+## [6.0.0] - 2026-11-08
 
-Atualizada a rota principal do assistente de instalação para install/index.php, eliminando a necessidade de digitar o arquivo explicitamente na URL.
+Grande reformulação: o sistema passa a funcionar **sem MySQL** e ganha sorteio de times, agenda e fila de espera.
 
-Implementada a importação dinâmica do banco de dados a partir do arquivo estruturado schema.sql.
+### 🔄 Modificado (quebra de compatibilidade)
+- Persistência migrada de **MySQL/PDO** para um único arquivo **`data/futsal.json`** (`db.php`), com lock exclusivo e gravação atômica.
+- Instalador simplificado: pede apenas usuário e senha do administrador.
+- Trava de instalação movida para `data/installed.lock` — apagar a pasta `install/` não derruba mais o sistema.
+- Removidos `conexao.php.example` e `schema.sql`.
 
-Criação automática e segura das credenciais administrativas iniciais durante o processo de instalação.
+### 🚀 Adicionado
+- **Próximo Jogo:** bloco no topo da página pública com status (confirmado, reagendado, cancelado), contagem regressiva e frases motivacionais.
+- **Agenda de jogos:** popup com jogos futuros; cadastro, edição, reagendamento e cancelamento; geração de **jogos semanais**; exclusão de vários jogos de uma vez.
+- **Avisar a galera:** compartilhamento do próximo jogo via WhatsApp.
+- **Confirmar Presença** pública com **Fila de Espera** no painel (aceitar, aceitar como convidado, recusar, aceitar todos, atualização automática) e proteção anti-spam.
+- **Limite de jogadores** confirmados, com bloqueio de novos pedidos quando a lista lota.
+- **Goleiros fixos:** duas vagas que não pagam, com foto (recorte automático em alta resolução) e popup ampliado.
+- **Convidados:** marcação de convidado e edição de nome dos jogadores.
+- **Sorteio de times:** botão com dado animado em SVG; times de 4 na linha; Times 1 e 2 priorizam membros fixos; quem sobra forma o time seguinte; **memória de duplas entre etapas** para evitar repetições; confirmação do sorteio; zerar memória.
+- **Ver Sorteio** na página pública (somente sorteios confirmados) e link direto `?sorteio=1`.
+- **Compartilhar sorteio** no WhatsApp com emojis Unicode, cores por time (🟢 1–2, 🟡 3, 🟠 4+) e próximo jogo.
+- **Histórico de etapas** finalizadas (jogadores, pagamentos, saldos).
+- **Valor por jogador na etapa** configurável; pendência da diferença para pagamentos parciais.
 
-🐛 Correções de Erros (Bug Fixes)
-Geração Dinâmica do conexao.php:
+### 🛡️ Segurança
+- Removido o administrador padrão `admin/admin123` criado automaticamente.
+- Sessão com cookie `HttpOnly`/`SameSite=Strict` e `session_regenerate_id` no login.
+- Limite de 5 tentativas de login a cada 15 minutos.
+- Proteção CSRF (exige JSON + checagem de `Origin`).
+- Escape de HTML em todas as listas (proteção contra XSS).
+- Validações no servidor: nomes, valores não negativos, senha mínima, WhatsApp, datas e horários.
+- Upload de fotos validado e recodificado; pasta `fotos/` sem execução de scripts.
 
-Corrigida a gravação das credenciais do banco de dados para evitar o uso de dados genéricos de exemplo.
+### 🐛 Corrigido
+- Perda de dados em gravações simultâneas.
+- Troca de senha retornava sucesso para usuário inexistente.
+- Valor de pendência fixo no código (agora configurável).
+- Fuso horário definido como `America/Sao_Paulo`.
+- Emoji quebrado (�) na mensagem do WhatsApp.
 
-Implementado tratamento de caracteres especiais nas senhas do MySQL (escape com addslashes) para prevenir quebras de sintaxe no PHP gerado.
+---
 
-Trava de Instalação e Tratamento de Exceções:
+## [5.0.1] - 2026-07-28
 
-Ajustada a verificação de segurança no topo do api.php para interromper requisições JSON e alertar o usuário caso o sistema ainda não tenha sido instalado.
+### 🚀 Melhorias
+- Rota principal do instalador em `install/index.php`.
+- Importação dinâmica do banco a partir de `schema.sql`.
+- Criação automática das credenciais administrativas na instalação.
 
-Aprimoradas as mensagens de erro e o fluxo de criação da trava installed.lock.
+### 🐛 Corrigido
+- Gravação das credenciais do banco no `conexao.php` gerado.
+- Escape de caracteres especiais nas senhas do MySQL.
+- Verificação de instalação no topo do `api.php` e fluxo da trava `installed.lock`.
 
 ## [5.0.0] - 2026-07-28
 
 ### 🚀 Adicionado
-- **Gestão de Pendências Acumuladas:** Novo painel para visualização e acompanhamento de dívidas de etapas anteriores.
-- **Quitação de Dívidas:** Opção para dar baixa manual em pendências com soma/abatimento automático no Saldo Caixa.
-- **Listagem de Inadimplentes da Etapa:** Seção dedicada no painel Admin para identificar rapidamente quem ainda não pagou no ciclo atual.
-- **Ações Rápidas por Jogador:** Botões diretos para dar baixa, editar valores e remover lançamentos pendentes.
+- Painel de dívidas de etapas anteriores.
+- Baixa manual de pendências com reflexo no Saldo Caixa.
+- Seção para identificar quem ainda não pagou no ciclo atual.
 
 ### 🔄 Modificado
-- **Integração de Caixa:** As quitações de pendências passadas agora alimentam diretamente o fluxo do saldo do caixa.
-- **Interface e Layout:** Refatoração completa das tabelas de controle admin em componentes Tailwind CSS otimizados e responsivos.
+- Quitações de pendências passam a alimentar o saldo do caixa.
+- Tabelas do admin refatoradas em componentes Tailwind responsivos.
 
 ### 🛡️ Segurança
-- Interceptação e tratamento de sessões expiradas (status HTTP 403) com fechamento automático dos recursos do painel administrativo.
+- Tratamento de sessões expiradas (HTTP 403) com fechamento do painel.
 
 ## [4.4.0] - 2026-07-25
-
 ### Alterado
-- **Interface (UI/UX):** Ocultada a exibição do selo/badge de "Pendente" para jogadores sem valor pago (`R$ 0,00`) na lista pública, mantendo o layout mais limpo sem afetar os cálculos de caixa.
-- **Painel Admin:** Otimizada a renderização dinâmica dos dados e modais após ações de criação, edição ou exclusão, eliminando a necessidade de atualizar a página (`F5`).
-
+- Ocultado o selo "Pendente" na lista pública.
+- Renderização dinâmica sem recarregar a página.
 ### Corrigido
-- **API Backend (`api.php`):** Ajustada a consulta SQL de pagamentos da quadra para ordenação e formatação correta do campo `criado_em`.
-- **Tratamento de Erros:** Adicionado tratamento de exceção `PDOException` com respostas padronizadas em JSON (`HTTP status 500`).
-
----
+- Ordenação dos pagamentos da quadra e respostas de erro padronizadas em JSON.
 
 ## [4.3.0] - 2026-07-20
-
 ### Adicionado
-- **Gestão Financeira Dinâmica:** Suporte ao lançamento de parcelas/etapas pagas à quadra (`pagamentos_quadra`) com cálculo automático de saldo do caixa em tempo real.
-- **Edição Individual:** Funcionalidade no painel administrativo para editar o valor de contribuição por jogador diretamente na lista.
-- **Identidade e Redes:** Rodapé unificado com créditos à VKT CLOUD e links para GitHub, LinkedIn, Instagram e Website.
-
----
+- Lançamento de parcelas pagas à quadra com cálculo do saldo em tempo real.
+- Edição do valor de contribuição por jogador.
+- Rodapé com créditos à VKT CLOUD e redes sociais.
 
 ## [4.0.0] - 2026-06-01
-
 ### Modificado
-- **Arquitetura Geral:** Migração completa da camada de persistência de dados do Firebase (Firestore) para arquitetura própria com **PHP 8 + MySQL (PDO)**.
-- **Interface Otimizada:** Refatoração visual completa com Tailwind CSS utilitário no modelo *Mobile-First*.
-
+- Migração do Firebase (Firestore) para PHP + MySQL.
+- Refatoração visual com Tailwind CSS.
 ### Adicionado
-- **Segurança:** Área administrativa protegida por autenticação para gestão de presencia e lançamentos.
-- **Atalhos Rápidos:** Botão de cópia rápida para chave PIX e integração direta com WhatsApp para envio de comprovante.
-
----
-
-[Unreleased]: https://github.com/gitvkt/futsal-lista-presenca/compare/v4.4.0...HEAD
-[4.4.0]: https://github.com/gitvkt/futsal-lista-presenca/compare/v4.3.0...v4.4.0
-[4.3.0]: https://github.com/gitvkt/futsal-lista-presenca/compare/v4.0.0...v4.3.0
-[4.0.0]: https://github.com/gitvkt/futsal-lista-presenca/releases/tag/v4.0.0
+- Área administrativa com autenticação.
+- Cópia rápida da chave PIX e envio de comprovante via WhatsApp.

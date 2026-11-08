@@ -1,94 +1,86 @@
 # 🚀 Guia de Instalação e Configuração
 
-Guia passo a passo para instalação e implantação do sistema em ambientes de hospedagem cPanel / Apache.
+Guia passo a passo para instalar o **Futsal da Firma** em hospedagens cPanel / Apache (ou localmente com WAMP/XAMPP).
+
+> Esta versão **não usa MySQL**: os dados ficam em `data/futsal.json`.
 
 ---
 
 ## ⚙️ Pré-requisitos
 
-* **Servidor Web:** PHP 7.4 ou superior (extensão `pdo_mysql` habilitada).
-* **Banco de Dados:** MySQL / MariaDB.
-* **Acesso ao Servidor:** Gerenciador de Arquivos do cPanel ou acesso via FTP/SSH.
+- **PHP 8.x** com as extensões padrão `json` e `session` (presentes em qualquer hospedagem).
+- **Recomendado:** extensão `gd` (recodifica as fotos dos goleiros com mais segurança).
+- **Apache** (para os arquivos `.htaccess`). Em **Nginx**, veja a seção específica abaixo.
+- Acesso ao Gerenciador de Arquivos do cPanel ou FTP/SSH.
 
 ---
 
-## 🛠️ Passo a Passo para Instalação
+## 🛠️ Passo a passo
 
-### 1. Upload dos Arquivos
-1. Envie todos os arquivos do projeto para o diretório raiz da sua hospedagem (ex: `public_html`).
-2. Garanta que o arquivo de estrutura do banco de dados na raiz do projeto esteja renomeado como **`schema.sql`**.
+### 1. Envio dos arquivos
+Envie todos os arquivos do projeto para o diretório do site, por exemplo `public_html/futsal/`.
 
----
+### 2. Permissões
+A pasta do sistema precisa de permissão de escrita (**755**, ou **775/777** se necessário) para que o PHP crie:
+- `data/` — arquivo de dados `futsal.json`;
+- `fotos/` — fotos dos goleiros.
 
-### 2. Criação do Banco de Dados no cPanel
-1. Acesse o **cPanel** e abra o menu **Bancos de Dados MySQL**.
-2. Crie um novo banco de dados (ex: `usuario_futsal`).
-3. Crie um novo usuário MySQL e defina uma senha forte.
-4. Associe o usuário ao banco de dados criado e marque a opção **Todos os Privilégios**.
+### 3. Assistente de instalação
+Acesse no navegador:
 
----
+```text
+https://seusite.com.br/futsal/install/
+```
 
-### 3. Execução do Assistente Web
-1. Acesse o diretório de instalação através do seu navegador:
-   ```text
-   [https://seusite.com.br/install/](https://seusite.com.br/install/)
+Informe o **usuário** e uma **senha** de administrador (mínimo de 6 caracteres; a senha `admin123` não é aceita) e clique em **Instalar**.
 
-
-Como o arquivo principal é o index.php, o assistente será carregado automaticamente ao acessar a pasta.
-
-Preencha as credenciais solicitadas no formulário:
-
-Host: localhost (ou o IP/host do seu servidor MySQL)
-
-Nome do Banco: Nome completo do banco de dados criado no cPanel.
-
-Usuário do Banco: Usuário atribuído ao banco de dados.
-
-Senha do Banco: Senha do usuário MySQL.
-
-Usuário Admin: Nome para login no painel administrativo (padrão: admin).
-
-Senha Admin: Senha de acesso do administrador.
-
-Clique no botão "Instalar e Configurar".
+O instalador:
+- [x] cria `data/futsal.json` com a estrutura inicial;
+- [x] cadastra o administrador com senha criptografada (`password_hash`);
+- [x] cria a trava `data/installed.lock`.
 
 ---
 
-### 🤖 Processos Automatizados pelo Instalador:
-[x] Banco de Dados: Importação automática da estrutura de tabelas do schema.sql.
+## 🔒 Após instalar
 
-[x] Administrador: Cadastro da conta admin com senha criptografada via password_hash.
+> [!IMPORTANT]
+> Apague a pasta `install/` do servidor. Isso é seguro: a trava de instalação fica em `data/installed.lock`.
 
-[x] Configuração: Geração dinâmica do arquivo conexao.php na raiz do projeto.
-
-[x] Segurança: Criação do arquivo de bloqueio install/installed.lock.
-
-
----
-
-### 🔒 Ações de Segurança Pós-Instalação
-[!IMPORTANT]
-Após concluir a instalação e confirmar que o sistema está funcionando, execute os seguintes passos de segurança:
-
-[ ] Remover o Instalador: Apague a pasta /install do servidor via cPanel ou FTP para evitar execuções indevidas.
-
-[ ] Permissões de Arquivo: Certifique-se de que o arquivo conexao.php esteja configurado com a permissão de leitura 0644.
-
+Depois, entre em **Área Admin** e configure:
+1. Chave PIX e WhatsApp para comprovantes.
+2. Valor da quadra e valor por jogador na etapa.
+3. Máximo de jogadores (0 = sem limite).
+4. Goleiros fixos (nome e foto).
+5. Agenda de jogos (ícone 📅 no bloco *Próximo Jogo*) — use **Jogos semanais** para gerar várias datas de uma vez.
 
 ---
 
-### 🔄 Como Forçar uma Reinstalação
-Se precisar refazer o processo de instalação do zero:
+## 🌐 Servidores Nginx
 
-Exclua o arquivo conexao.php localizado na raiz do projeto.
+O `.htaccess` não funciona no Nginx. Adicione à configuração do site:
 
-Exclua o arquivo install/installed.lock.
-
+```nginx
+location ^~ /futsal/data/ { deny all; }
+location ~* ^/futsal/fotos/.*\.(php|phtml|phar)$ { deny all; }
+```
 
 ---
 
-### 
-Acesse novamente no navegador a URL:
+## 💾 Backup e restauração
 
-Plaintext
-[https://seusite.com.br/install/](https://seusite.com.br/install/)
+- **Backup:** copie `data/futsal.json` e a pasta `fotos/`.
+- **Restaurar:** envie os arquivos de volta para as mesmas pastas.
+
+---
+
+## 🔄 Reinstalação
+
+1. Exclua `data/installed.lock`.
+2. (Opcional) Exclua `data/futsal.json` para começar do zero.
+3. Envie novamente a pasta `install/` e acesse `https://seusite.com.br/futsal/install/`.
+
+---
+
+## 🧪 Ambiente local (WAMP/XAMPP)
+
+Copie a pasta para `C:\wamp64\www\futsal\` (ou `htdocs`) e acesse `http://localhost/futsal/install/`.
