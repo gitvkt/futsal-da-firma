@@ -95,6 +95,84 @@ function lista_cheia(array $db): bool
 }
 
 // ==========================================
+// CRAQUE DO DIA — votação aberta do dia do jogo até 2 dias depois
+// ==========================================
+const CRAQUE_DIAS_VALIDADE = 2;
+
+/** Data efetiva de um jogo da agenda (considera reagendamento). */
+function data_efetiva_jogo(array $g): string
+{
+    return (($g['status'] ?? '') === 'reagendado' && !empty($g['nova_data'])) ? $g['nova_data'] : $g['data'];
+}
+
+/** Jogo cuja votação está aberta hoje (dia do jogo até +2 dias), ou null. */
+function jogo_votacao_aberta(array $db): ?array
+{
+    $hoje = date('Y-m-d');
+    $limite = date('Y-m-d', strtotime($hoje . ' -' . CRAQUE_DIAS_VALIDADE . ' days'));
+    $melhor = null;
+    foreach ($db['agenda'] ?? [] as $g) {
+        if (($g['status'] ?? '') === 'cancelado') continue;
+        $d = data_efetiva_jogo($g);
+        if ($d <= $hoje && $d >= $limite && (!$melhor || $d > data_efetiva_jogo($melhor))) $melhor = $g;
+    }
+    return $melhor;
+}
+
+/** Candidatos atuais: goleiros fixos + jogadores confirmados. */
+function candidatos_atuais(array $db): array
+{
+    $cand = [];
+    foreach ($db['goleiros'] ?? [] as $g) { $n = trim($g['nome'] ?? ''); if ($n !== '') $cand[] = $n; }
+    foreach ($db['jogadores'] ?? [] as $j) { $n = trim($j['nome'] ?? ''); if ($n !== '') $cand[] = $n; }
+    return array_values(array_unique($cand));
+}
+
+/** Votação do jogo: a gravada ou uma "virtual" (somente leitura) ainda sem votos. */
+function obter_votacao(array $db, array $jogo): array
+{
+    $d = data_efetiva_jogo($jogo);
+    if (isset($db['votacoes'][$d])) return $db['votacoes'][$d];
+    return [
+        'data' => $d,
+        'encerra_em' => date('Y-m-d', strtotime($d . ' +' . CRAQUE_DIAS_VALIDADE . ' days')),
+        'candidatos' => candidatos_atuais($db),
+        'votos' => [],
+        'eleitores' => [],
+    ];
+}
+
+/** Resumo público de uma votação (sem dados de eleitores). */
+function resumo_votacao(array $v, bool $aberta, string $chaveEleitor = ''): array
+{
+    $votos = (array)($v['votos'] ?? []);
+    arsort($votos);
+    $lider = null; $max = 0; $empate = [];
+    foreach ($votos as $nome => $qtd) {
+        if ($qtd > $max) { $max = $qtd; $empate = [$nome]; }
+        elseif ($qtd === $max && $qtd > 0) { $empate[] = $nome; }
+    }
+    $eleitores = (array)($v['eleitores'] ?? []);
+    return [
+        'data' => $v['data'], 'encerra_em' => $v['encerra_em'], 'aberta' => $aberta,
+        'candidatos' => $v['candidatos'] ?? [], 'votos' => $votos, 'total' => array_sum($votos),
+        'lideres' => $empate, 'max_votos' => $max,
+        'meu_voto' => $chaveEleitor !== '' ? ($eleitores[$chaveEleitor] ?? null) : null,
+    ];
+}
+
+function chave_eleitor(): string
+{
+    $tok = $_COOKIE['futsal_voto'] ?? '';
+    if (!preg_match('/^[a-f0-9]{32}$/', $tok)) {
+        $tok = bin2hex(random_bytes(16));
+        setcookie('futsal_voto', $tok, ['expires' => time() + 31536000, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax',
+            'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off']);
+    }
+    return hash('sha256', $tok);
+}
+
+// ==========================================
 // GET — leitura pública do painel
 // ==========================================
 if ($method === 'GET') {
@@ -144,6 +222,26 @@ if ($method === 'GET') {
         return $g['data'] >= $hoje || $efetiva >= $hoje;
     }));
     $resp['hoje'] = $hoje;
+
+    // Craque do Dia: votação aberta (dia do jogo até +2 dias) ou o último craque eleito
+    $jv = jogo_votacao_aberta($db);
+    if ($jv) {
+        $resp['craque'] = resumo_votacao(obter_votacao($db, $jv), true, chave_eleitor());
+    } else {
+        $resp['craque'] = null;
+        $datas = array_keys($db['votacoes'] ?? []);
+        rsort($datas);
+        foreach ($datas as $d) {
+            $r = resumo_votacao($db['votacoes'][$d], false);
+            if ($r['total'] > 0) { $resp['craque'] = $r; break; }
+        }
+    }
+    if ($logado) {
+        $hist = [];
+        foreach ($db['votacoes'] ?? [] as $d => $v) $hist[] = resumo_votacao($v, $jv && data_efetiva_jogo($jv) === $d);
+        usort($hist, fn($a, $b) => strcmp($b['data'], $a['data']));
+        $resp['historico_craques'] = $hist;
+    }
     // Admin vê o último sorteio sempre; público só vê depois de confirmado (sem dados internos)
     $s = $db['ultimo_sorteio'];
     if ($logado) {
@@ -207,6 +305,41 @@ if ($method === 'POST') {
     }
 
     // ---------- CONFIRMAR PRESENÇA (público — vai para a fila de espera) ----------
+    // ---------- CRAQUE DO DIA (público): 1 voto por aparelho, pode trocar enquanto aberta ----------
+    if ($acao === 'votar_craque') {
+        $jv = jogo_votacao_aberta($db);
+        if (!$jv) responder(['sucesso' => false, 'mensagem' => 'A votação do Craque do Dia está fechada. Ela abre no dia do jogo e vale por 2 dias.']);
+        $v = obter_votacao($db, $jv);
+        $d = $v['data'];
+        $nome = trim($data['nome'] ?? '');
+        if (!in_array($nome, $v['candidatos'], true)) responder(['sucesso' => false, 'mensagem' => 'Escolha um jogador da lista.']);
+
+        // Anti-abuso extra: no máximo 3 aparelhos diferentes por IP em cada votação
+        $ipHash = hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? 'x') . '|' . $d);
+        $eleitor = chave_eleitor();
+        $v['ips'] = (array)($v['ips'] ?? []);
+        $v['votos'] = (array)($v['votos'] ?? []);
+        $v['eleitores'] = (array)($v['eleitores'] ?? []);
+        $anterior = $v['eleitores'][$eleitor] ?? null;
+        if ($anterior === null) {
+            $doIp = $v['ips'][$ipHash] ?? 0;
+            if ($doIp >= 3) responder(['sucesso' => false, 'mensagem' => 'Limite de votos desta rede atingido.']);
+            $v['ips'][$ipHash] = $doIp + 1;
+        } elseif ($anterior === $nome) {
+            responder(['sucesso' => true, 'mensagem' => 'Você já votou em ' . $nome . '!', 'craque' => resumo_votacao($v, true, $eleitor)]);
+        } else {
+            $v['votos'][$anterior] = max(0, ($v['votos'][$anterior] ?? 1) - 1);
+            if ($v['votos'][$anterior] === 0) unset($v['votos'][$anterior]);
+        }
+        $v['votos'][$nome] = ($v['votos'][$nome] ?? 0) + 1;
+        $v['eleitores'][$eleitor] = $nome;
+        $db['votacoes'][$d] = $v;
+        // Mantém só as últimas 30 votações
+        if (count($db['votacoes']) > 30) { ksort($db['votacoes']); $db['votacoes'] = array_slice($db['votacoes'], -30, null, true); }
+        db_gravar($db);
+        responder(['sucesso' => true, 'mensagem' => $anterior ? 'Voto alterado para ' . $nome . '!' : 'Voto registrado em ' . $nome . '! ⭐', 'craque' => resumo_votacao($v, true, $eleitor)]);
+    }
+
     if ($acao === 'confirmar_presenca') {
         $nome = nome_valido($data['nome'] ?? '');
         if (mb_strlen($nome) < 2) {
@@ -258,6 +391,14 @@ if ($method === 'POST') {
     // ABAIXO DESTA LINHA, APENAS ADMINISTRADORES PODEM AGIR
     // ========================================================
     verificarAutenticacao();
+
+    if ($acao === 'zerar_votacao_craque') {
+        $d = trim($data['data'] ?? '');
+        if (!isset($db['votacoes'][$d])) responder(['sucesso' => false, 'mensagem' => 'Votação não encontrada.']);
+        unset($db['votacoes'][$d]);
+        db_gravar($db);
+        responder(['sucesso' => true, 'mensagem' => 'Votação zerada.']);
+    }
 
     // ---------- FILA DE ESPERA (admin) ----------
     if ($acao === 'aceitar_fila' || $acao === 'recusar_fila') {

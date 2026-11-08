@@ -68,7 +68,7 @@
             <!-- PRÓXIMO JOGO (público) -->
             <div id="blocoProximoJogo" class="hidden relative overflow-hidden rounded-2xl p-5 sm:p-6 shadow-2xl border proximo-jogo">
                 <!-- bolinhas decorativas -->
-                <div class="pointer-events-none absolute -right-6 -top-6 text-8xl opacity-10 select-none bola-gira">⚽</div>
+                <div class="pointer-events-none absolute -right-4 -top-5 text-8xl sm:text-9xl opacity-40 select-none bola-gira bola-destaque">⚽</div>
                 <div class="pointer-events-none absolute -left-4 -bottom-8 text-7xl opacity-10 select-none">🏆</div>
 
                 <button onclick="abrirPopupAgenda()" title="Ver agenda de jogos"
@@ -82,10 +82,28 @@
                     <p id="pjData" class="text-white/95 font-bold text-sm sm:text-base flex flex-wrap items-center gap-x-3 gap-y-1"></p>
                     <p id="pjContagem" class="text-white/90 text-xs font-semibold"></p>
                     <p id="pjMensagem" class="text-white/85 text-xs sm:text-sm italic"></p>
-                    <button id="btnCompartilharJogo" onclick="compartilharProximoJogo()"
-                        class="hidden mt-2 inline-flex items-center gap-2 bg-white/90 hover:bg-white text-green-700 font-extrabold text-xs px-4 py-2 rounded-xl shadow-lg transition">
-                        <i class="fa-brands fa-whatsapp text-base"></i> Avisar a galera
-                    </button>
+                    <div class="flex flex-wrap items-center gap-2 mt-2">
+                        <button id="btnCompartilharJogo" onclick="compartilharProximoJogo()"
+                            class="hidden inline-flex items-center gap-2 bg-white/90 hover:bg-white text-green-700 font-extrabold text-xs px-4 py-2 rounded-xl shadow-lg transition">
+                            <i class="fa-brands fa-whatsapp text-base"></i> Avisar a galera
+                        </button>
+                        <button id="btnVotarCraque" onclick="abrirPopupCraque()"
+                            class="hidden inline-flex items-center gap-2 bg-yellow-300 hover:bg-yellow-200 text-amber-900 font-extrabold text-xs px-4 py-2 rounded-xl shadow-lg transition craque-brilho">
+                            <i class="fa-solid fa-star"></i> <span id="txtBtnCraque">Votar no Craque do Dia</span>
+                        </button>
+                    </div>
+
+                    <!-- Destaque do Craque do Dia -->
+                    <div id="pjCraque" onclick="abrirPopupCraque()"
+                        class="hidden cursor-pointer mt-1 inline-flex items-center gap-3 bg-black/25 hover:bg-black/35 border border-yellow-300/50 rounded-xl px-3 py-2 transition">
+                        <span class="text-2xl craque-pulo">🏆</span>
+                        <div class="leading-tight">
+                            <span id="pjCraqueRotulo" class="block text-[10px] font-extrabold uppercase tracking-widest text-yellow-200"></span>
+                            <span id="pjCraqueNome" class="block text-white font-black text-sm sm:text-base"></span>
+                            <span id="pjCraqueData" class="block text-yellow-100/90 text-[11px] font-semibold"></span>
+                            <span id="pjCraqueInfo" class="block text-white/75 text-[10px]"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -595,6 +613,40 @@
         </div>
     </footer>
 
+    <!-- Popup Craque do Dia -->
+    <div id="popupCraque" onclick="if (event.target === this) fecharPopupCraque()"
+        class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-yellow-400/40 rounded-2xl w-full max-w-md shadow-2xl relative max-h-[90vh] flex flex-col sorteio-pop">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🏆</span>
+                    <h3 class="font-extrabold text-slate-100 text-base">Craque do Dia</h3>
+                    <span id="craqueStatus" class="text-[10px] px-2 py-0.5 rounded-full border"></span>
+                </div>
+                <button onclick="fecharPopupCraque()" class="text-slate-400 hover:text-slate-200 transition" title="Fechar">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-3">
+                <p id="craqueInfo" class="text-xs text-slate-400"></p>
+                <ul id="listaCraque" class="space-y-2 text-sm"></ul>
+                <p id="craqueMsg" class="hidden text-xs font-medium p-2 rounded-lg border"></p>
+                <div id="craqueAdmin" class="hidden pt-2 border-t border-slate-700">
+                    <button onclick="zerarVotacaoCraque()" class="text-[11px] text-rose-300 hover:text-rose-200">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> Zerar votos desta votação (admin)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes craqueBrilho { 0%,100% { box-shadow: 0 0 0 0 rgba(253,224,71,.7); } 50% { box-shadow: 0 0 0 6px rgba(253,224,71,0); } }
+        .craque-brilho { animation: craqueBrilho 1.8s ease-in-out infinite; }
+        @keyframes craquePulo { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(-8deg); } }
+        .craque-pulo { animation: craquePulo 1.6s ease-in-out infinite; display: inline-block; }
+    </style>
+
     <!-- Popup Agenda de Jogos -->
     <div id="popupAgenda" onclick="if (event.target === this) fecharPopupAgenda()"
         class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
@@ -696,6 +748,7 @@
         .proximo-jogo.st-vazio      { background: linear-gradient(135deg, #334155 0%, #475569 100%); border-color: rgba(148, 163, 184, .35); }
         @keyframes bolaGira { from { transform: rotate(0); } to { transform: rotate(360deg); } }
         .bola-gira { animation: bolaGira 12s linear infinite; }
+        .bola-destaque { filter: drop-shadow(0 4px 10px rgba(0,0,0,.35)); }
         @keyframes pulsar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
         .pulsar { animation: pulsar 1.8s ease-in-out infinite; display: inline-block; }
     </style>
@@ -983,7 +1036,14 @@
                 if (!data.jogadores || data.jogadores.length === 0) {
                     containerLista.innerHTML = `<li class="text-center py-6 text-slate-500 italic text-xs">Nenhum jogador cadastrado para esta etapa.</li>`;
                 } else {
-                    data.jogadores.forEach((jog, index) => {
+                    // Ordem: 1) pagos (fixos ou convidados) · 2) não pagos fixos · 3) não pagos convidados — cada grupo em ordem alfabética
+                    const grupoJog = j => parseFloat(j.valor_pago || 0) > 0 ? 0 : (j.convidado ? 2 : 1);
+                    // Ordem alfabética ignorando símbolos (ex.: "~LC" conta como "LC")
+                    const chaveNome = n => String(n || '').replace(/[^\p{L}\p{N}\s]/gu, '').trim();
+                    const jogadoresOrdenados = [...data.jogadores].sort((a, b) =>
+                        grupoJog(a) - grupoJog(b) ||
+                        chaveNome(a.nome).localeCompare(chaveNome(b.nome), 'pt-BR', { sensitivity: 'base' }));
+                    jogadoresOrdenados.forEach((jog, index) => {
                         const valorPago = parseFloat(jog.valor_pago || 0);
                         totalArrecadado += valorPago;
 
@@ -1153,6 +1213,8 @@
                 agendaAtual = data.agenda || [];
                 hojeServidor = data.hoje || '';
                 renderizarProximoJogo();
+                craqueAtual = data.craque || null;
+                renderizarCraque();
                 ultimoSorteio = data.ultimo_sorteio || null;
                 atualizarBlocoSorteio();
                 const inpPend = document.getElementById('inputValorPendencia');
@@ -1171,6 +1233,136 @@
 
         // ===== CONFIRMAR PRESENÇA / FILA DE ESPERA =====
         // ===== GOLEIROS FIXOS =====
+        // ===== AGENDA / PRÓXIMO JOGO =====
+        // ===== CRAQUE DO DIA =====
+        let craqueAtual = null;
+
+        function textoEncerramento(c) {
+            const n = diasAte(c.encerra_em);
+            if (n <= 0) return 'Votação encerra hoje à meia-noite';
+            if (n === 1) return 'Votação encerra amanhã';
+            return `Votação aberta por mais ${n} dias`;
+        }
+
+        function nomeLider(c) {
+            const l = c.lideres || [];
+            if (!l.length || !c.max_votos) return '';
+            return l.length > 1 ? l.join(' e ') : l[0];
+        }
+
+        function renderizarCraque() {
+            const btn = document.getElementById('btnVotarCraque');
+            const box = document.getElementById('pjCraque');
+            if (!btn || !box) return;
+            const c = craqueAtual;
+            btn.classList.toggle('hidden', !(c && c.aberta));
+            if (c && c.aberta) {
+                document.getElementById('txtBtnCraque').innerText = c.meu_voto ? 'Mudar meu voto' : 'Votar no Craque do Dia';
+            }
+            const lider = c ? nomeLider(c) : '';
+            if (!c || !lider) { box.classList.add('hidden'); box.classList.remove('inline-flex'); return; }
+            box.classList.remove('hidden'); box.classList.add('inline-flex');
+            const empate = (c.lideres || []).length > 1;
+            document.getElementById('pjCraqueRotulo').innerText = c.aberta
+                ? (empate ? '⭐ Empate na liderança' : '⭐ Craque da vez (parcial)')
+                : '⭐ Craque do Dia';
+            document.getElementById('pjCraqueNome').innerText = lider;
+            document.getElementById('pjCraqueData').innerText = `📅 ${dataExtenso(c.data)}`;
+            document.getElementById('pjCraqueInfo').innerText = `${c.max_votos} voto(s) de ${c.total}` + (c.aberta ? ` · ${textoEncerramento(c)}` : '');
+        }
+
+        function abrirPopupCraque() {
+            const c = craqueAtual;
+            if (!c) return;
+            const st = document.getElementById('craqueStatus');
+            st.innerText = c.aberta ? 'ABERTA' : 'ENCERRADA';
+            st.className = 'text-[10px] px-2 py-0.5 rounded-full border ' + (c.aberta
+                ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                : 'bg-slate-600/30 text-slate-300 border-slate-500/30');
+            document.getElementById('craqueInfo').innerText = c.aberta
+                ? `Jogo de ${dataExtenso(c.data)} · ${textoEncerramento(c)}. Toque em um nome para votar (1 voto por aparelho, pode trocar).`
+                : `Resultado do jogo de ${dataExtenso(c.data)}.`;
+            document.getElementById('craqueMsg').classList.add('hidden');
+            document.getElementById('craqueAdmin').classList.toggle('hidden', !isAdmin);
+            renderizarListaCraque();
+            const m = document.getElementById('popupCraque');
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+
+        function fecharPopupCraque() {
+            const m = document.getElementById('popupCraque');
+            if (!m) return;
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharPopupCraque(); });
+
+        function renderizarListaCraque() {
+            const c = craqueAtual;
+            const ul = document.getElementById('listaCraque');
+            const votos = c.votos || {};
+            const total = c.total || 0;
+            const nomes = [...(c.candidatos || [])].sort((a, b) => (votos[b] || 0) - (votos[a] || 0) || a.localeCompare(b));
+            if (!nomes.length) { ul.innerHTML = '<li class="text-slate-500 italic text-xs">Nenhum jogador na lista deste jogo.</li>'; return; }
+            ul.innerHTML = nomes.map((n, i) => {
+                const v = votos[n] || 0;
+                const pct = total ? Math.round(v * 100 / total) : 0;
+                const lider = v > 0 && v === c.max_votos;
+                const meu = c.meu_voto === n;
+                return `
+                <li>
+                    <button ${c.aberta ? '' : 'disabled'} data-nome="${escHtml(n)}" onclick="votarCraque(this.dataset.nome)"
+                        class="w-full text-left relative overflow-hidden rounded-xl border px-3 py-2 transition
+                        ${meu ? 'border-yellow-400 bg-yellow-400/10' : 'border-slate-700 bg-slate-900/60'} ${c.aberta ? 'hover:border-yellow-400/70' : 'cursor-default'}">
+                        <span class="absolute inset-y-0 left-0 bg-yellow-400/15" style="width:${pct}%"></span>
+                        <span class="relative flex items-center justify-between gap-2">
+                            <span class="text-slate-100 font-medium truncate">${lider ? '🏆 ' : ''}${escHtml(n)}${meu ? ' <span class="text-[9px] font-bold text-yellow-300 bg-yellow-400/15 px-1.5 rounded ml-1">SEU VOTO</span>' : ''}</span>
+                            <span class="text-xs font-mono text-yellow-200 shrink-0">${v} · ${pct}%</span>
+                        </span>
+                    </button>
+                </li>`;
+            }).join('');
+        }
+
+        async function votarCraque(nome) {
+            const c = craqueAtual;
+            if (!c || !c.aberta) return;
+            const msg = document.getElementById('craqueMsg');
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ acao: 'votar_craque', nome: nome })
+                });
+                const data = await res.json();
+                msg.innerText = data.mensagem || (data.sucesso ? 'Voto registrado!' : 'Erro ao votar.');
+                msg.className = 'text-xs font-medium p-2 rounded-lg border ' + (data.sucesso
+                    ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                    : 'bg-rose-500/10 text-rose-300 border-rose-500/20');
+                if (data.sucesso && data.craque) {
+                    craqueAtual = data.craque;
+                    renderizarListaCraque();
+                    renderizarCraque();
+                }
+            } catch (e) {
+                msg.innerText = 'Erro ao conectar com o servidor.';
+                msg.className = 'text-xs font-medium p-2 rounded-lg border bg-rose-500/10 text-rose-300 border-rose-500/20';
+            }
+        }
+
+        async function zerarVotacaoCraque() {
+            const c = craqueAtual;
+            if (!c || !confirm(`Zerar todos os votos do Craque do Dia de ${dataExtenso(c.data)}?`)) return;
+            const res = await fetchSeguro(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao: 'zerar_votacao_craque', data: c.data })
+            });
+            const data = await res.json();
+            alert(data.mensagem || 'Pronto.');
+            fecharPopupCraque();
+            carregarDados();
+        }
+
         // ===== AGENDA / PRÓXIMO JOGO =====
         let agendaAtual = [];
         let hojeServidor = '';

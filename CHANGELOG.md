@@ -11,6 +11,17 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ---
 
+## [6.1.0] - 2026-11-08
+
+### 🚀 Adicionado
+- 🏆 **Craque do Dia**: votação aberta no dia do jogo e por até 2 dias depois. Botão ao lado de *Avisar a galera* e destaque do craque (nome, data e votos) no card do Próximo Jogo. 1 voto por aparelho (pode trocar), limite de 3 aparelhos por rede, e opção do admin zerar a votação.
+
+### 🔄 Modificado
+- Lista de jogadores de linha ordenada: primeiro quem pagou, depois os fixos que não pagaram e, por último, os convidados que não pagaram — cada grupo em ordem alfabética, ignorando símbolos (ex.: "~LC" conta como "LC").
+- Bola animada do card do Próximo Jogo mais visível (maior opacidade, tamanho e sombra).
+
+---
+
 ## [6.0.0] - 2026-11-08
 
 Grande reformulação: o sistema passa a funcionar **sem MySQL** e ganha sorteio de times, agenda e fila de espera.

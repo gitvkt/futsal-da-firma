@@ -2,7 +2,7 @@
 
 Aplicação web leve, responsiva e **sem banco de dados** para organizar partidas recreativas de futsal: confirmação de presença, fila de espera, sorteio inteligente de times, agenda de jogos e prestação de contas do caixa — tudo em uma única página, acessível pelo celular, sem cadastro para os jogadores.
 
-> **Versão 6.0** — todos os dados ficam em um único arquivo `data/futsal.json`. Basta PHP; não é preciso MySQL.
+> **Versão 6.1** — todos os dados ficam em um único arquivo `data/futsal.json`. Basta PHP; não é preciso MySQL.
 
 ### 🌐 [Ver demonstração ao vivo → vktcloud.com.br/futsal](https://vktcloud.com.br/futsal/)
 
@@ -33,6 +33,7 @@ Mais detalhes em [CONCEITO.md](CONCEITO.md).
 | 📅 **Próximo Jogo** | Bloco colorido no topo: *Teremos futebol* (verde), *Reagendado* (amarelo) ou *Cancelado* (vermelho), com contagem regressiva e frases motivacionais. |
 | 🗓️ **Agenda** | Ícone de calendário abre um popup com todos os jogos futuros. |
 | 🟢 **Avisar a galera** | Envia o aviso do próximo jogo pelo WhatsApp. |
+| 🏆 **Craque do Dia** | Votação aberta no dia do jogo e por até 2 dias; o craque aparece no card do Próximo Jogo. |
 | ✋ **Confirmar Presença** | O jogador digita o nome e entra na fila de espera para aprovação do organizador. |
 | 🧤 **Goleiros fixos** | Duas vagas fixas com foto (clique para ampliar). Goleiros não pagam. |
 | 🎲 **Ver Sorteio** | Mostra os times do último sorteio confirmado e permite compartilhar no WhatsApp. |
@@ -44,7 +45,7 @@ Mais detalhes em [CONCEITO.md](CONCEITO.md).
 | Função | Descrição |
 |---|---|
 | ⏳ **Fila de espera** | Aceitar como membro fixo, aceitar como **convidado**, recusar ou aceitar todos. Atualização automática a cada 15 s. |
-| 🏷️ **Convidados** | Marcar/desmarcar jogadores como convidados e editar nomes. |
+| 🏷️ **Convidados** | Marcar/desmarcar jogadores como convidados e editar nomes. Lista ordenada: pagos, não pagos e convidados (ordem alfabética). |
 | 🎲 **Sorteio de times** | Times de 4 na linha; **Times 1 e 2 priorizam membros fixos**, convidados vão para o Time 3 em diante; quem sobra forma o time seguinte (incompleto). Dado animado em SVG durante o sorteio. |
 | 🔁 **Sem repetições** | O sorteio memoriza as duplas que já jogaram juntas (mesmo entre etapas) e minimiza repetições. |
 | 📲 **Compartilhar** | Mensagem formatada para WhatsApp com emojis, cores por time (🟢 1–2, 🟡 3, 🟠 4+), próximo jogo e link direto para o sorteio (`?sorteio=1`). |

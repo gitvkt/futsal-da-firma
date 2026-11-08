@@ -39,6 +39,8 @@ function db_padrao(): array
         'fila_espera'       => [], // [{id, nome, criado_em, ip_hash}] — pedidos de "Confirmar Presença" aguardando aprovação
         // Agenda de jogos: [{id, data:'YYYY-MM-DD', hora:'HH:MM', local, status:'confirmado|reagendado|cancelado', nova_data, nova_hora, obs}]
         'agenda'            => [],
+        // Votação do Craque do Dia: { "YYYY-MM-DD": {data, candidatos[], votos{nome:n}, eleitores{hash:nome}} }
+        'votacoes'          => [],
         // Sorteio de times: contagem de vezes que cada dupla jogou junta (persiste entre etapas)
         'pares_sorteio'     => [], // { "nomeA|nomeB": vezes }
         'ultimo_sorteio'    => null, // {criado_em, times:[{nome, goleiro, jogadores[]}], repeticoes}
