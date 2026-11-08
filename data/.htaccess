@@ -1,0 +1,2 @@
+# Bloqueia acesso web direto aos arquivos de dados
+Require all denied
