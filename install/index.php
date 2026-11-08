@@ -1,16 +1,15 @@
 <?php
+require_once __DIR__ . '/../db.php';
 session_start();
 
-$caminho_conexao = '../conexao.php';
-$caminho_sql = '../schema.sql';
-$trava_instalacao = 'installed.lock';
+$data_dir = '../data';
 
 // 1. Bloqueio de Segurança: Se já instalado, interrompe a execução
-if (file_exists($trava_instalacao) || file_exists($caminho_conexao)) {
+if (sistema_instalado()) {
     die("
         <div style='font-family:sans-serif; text-align:center; padding: 50px; background:#0f172a; color:#f8fafc; min-height:100vh;'>
             <h1 style='color:#ef4444;'>Sistema Já Instalado!</h1>
-            <p>Para executar a instalação novamente, remova a pasta <strong>install/</strong> ou exclua os arquivos <strong>conexao.php</strong> e <strong>install/installed.lock</strong>.</p>
+            <p>Para executar a instalação novamente, exclua o arquivo <strong>data/installed.lock</strong>. Recomenda-se apagar a pasta <strong>install/</strong>.</p>
             <a href='../index.html' style='color:#38bdf8;'>Ir para o Sistema</a>
         </div>
     ");
@@ -19,83 +18,38 @@ if (file_exists($trava_instalacao) || file_exists($caminho_conexao)) {
 $mensagem = '';
 $erro = false;
 
-// 2. Processa o Formulário de Instalação
+// 2. Processa o Formulário de Instalação (sem banco de dados — só cria o admin)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $db_host = trim($_POST['db_host'] ?? 'localhost');
-    $db_name = trim($_POST['db_name'] ?? '');
-    $db_user = trim($_POST['db_user'] ?? '');
-    $db_pass = $_POST['db_pass'] ?? '';
-
-    $admin_user = trim($_POST['admin_user'] ?? 'admin');
+    $admin_user = mb_substr(trim(strip_tags($_POST['admin_user'] ?? '')), 0, 80);
     $admin_pass = $_POST['admin_pass'] ?? '';
 
-    if (empty($db_name) || empty($db_user) || empty($admin_pass)) {
+    if ($admin_user === '' || strlen($admin_pass) < 6) {
         $erro = true;
-        $mensagem = "Preencha todos os campos obrigatórios!";
+        $mensagem = "Informe o usuário e uma senha com pelo menos 6 caracteres!";
+    } elseif (strcasecmp($admin_user, 'admin') === 0 && $admin_pass === 'admin123') {
+        $erro = true;
+        $mensagem = "Não use a senha padrão admin123.";
     } else {
-        try {
-            // Conecta ao servidor MySQL com as credenciais informadas no formulário
-            $pdo = new PDO("mysql:host=$db_host;charset=utf8mb4", $db_user, $db_pass, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ]);
-
-            // Cria o Banco de Dados se não existir
-            $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db_name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
-            $pdo->exec("USE `$db_name`;");
-
-            // Importa a estrutura SQL do arquivo schema.sql
-            if (file_exists($caminho_sql)) {
-                $sqlCommands = file_get_contents($caminho_sql);
-                $pdo->exec($sqlCommands);
-            } else {
-                throw new Exception("O arquivo 'schema.sql' não foi encontrado no diretório raiz.");
-            }
-
-            // Cadastra/Atualiza o Administrador Inicial
-            $hashSenha = password_hash($admin_pass, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO usuarios (usuario, senha) VALUES (:user, :pass) ON DUPLICATE KEY UPDATE senha = :pass");
-            $stmt->execute([':user' => $admin_user, ':pass' => $hashSenha]);
-
-            // Monta e gera o arquivo conexao.php dinamicamente
-            $db_host_esc = addslashes($db_host);
-            $db_name_esc = addslashes($db_name);
-            $db_user_esc = addslashes($db_user);
-            $db_pass_esc = addslashes($db_pass);
-
-            $conexao_conteudo = "<?php\n" .
-            "// Prevenção estrita contra cache\n" .
-            "header(\"Cache-Control: no-store, no-cache, must-revalidate, max-age=0\");\n" .
-            "header(\"Cache-Control: post-check=0, pre-check=0\", false);\n" .
-            "header(\"Pragma: no-cache\");\n\n" .
-            "// Configurações do banco de dados (Geradas pelo Instalador)\n" .
-            "\$host = '{$db_host_esc}';\n" .
-            "\$dbname = '{$db_name_esc}';\n" .
-            "\$user = '{$db_user_esc}';\n" .
-            "\$pass = '{$db_pass_esc}';\n\n" .
-            "try {\n" .
-            "    \$pdo = new PDO(\"mysql:host=\$host;dbname=\$dbname;charset=utf8mb4\", \$user, \$pass, [\n" .
-            "        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,\n" .
-            "        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC\n" .
-            "    ]);\n" .
-            "} catch (PDOException \$e) {\n" .
-            "    http_response_code(500);\n" .
-            "    header(\"Content-Type: application/json; charset=UTF-8\");\n" .
-            "    echo json_encode([\"erro_conexao\" => \$e->getMessage()]);\n" .
-            "    exit;\n" .
-            "}\n";
-
-            file_put_contents($caminho_conexao, $conexao_conteudo);
-
-            // Cria o arquivo de trava
-            file_put_contents($trava_instalacao, 'INSTALADO_EM_' . date('Y-m-d H:i:s'));
-
-            $mensagem = "Instalação concluída com sucesso!";
-        } catch (PDOException $e) {
+        if (!is_writable(dirname($data_dir)) && !is_dir($data_dir)) {
             $erro = true;
-            $mensagem = "Erro no Banco de Dados: " . $e->getMessage();
-        } catch (Exception $e) {
-            $erro = true;
-            $mensagem = "Erro: " . $e->getMessage();
+            $mensagem = "Sem permissão para criar a pasta data/. Dê permissão de escrita (755/777) na pasta do sistema.";
+        } else {
+            $lk = db_lock(true);
+            $db = db_ler();
+
+            // Cadastra o Administrador Inicial
+            $db['usuarios'][] = [
+                'id' => db_proximo_id($db, 'usuarios'),
+                'usuario' => $admin_user,
+                'senha' => password_hash($admin_pass, PASSWORD_DEFAULT),
+            ];
+            db_gravar($db);
+
+            // Cria o arquivo de trava em data/ (assim apagar install/ não quebra o sistema)
+            file_put_contents(INSTALL_LOCK, 'INSTALADO_EM_' . date('Y-m-d H:i:s'));
+            db_unlock($lk);
+
+            $mensagem = "Instalação concluída com sucesso! Por segurança, apague a pasta install/ do servidor.";
         }
     }
 }
@@ -119,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div>
                 <h2 class="text-lg font-bold text-slate-200">Futsal da Firma</h2>
-                <p class="text-xs text-slate-400">Assistente de Instalação cPanel</p>
+                <p class="text-xs text-slate-400">Instalação — sem banco de dados MySQL</p>
             </div>
         </div>
 
@@ -137,37 +91,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <?php if (empty($mensagem) || $erro): ?>
         <form method="POST" class="space-y-4 text-xs">
-            <!-- Configurações Banco de Dados -->
-            <div class="space-y-2">
-                <h3 class="font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-database"></i> Banco de Dados (cPanel)
-                </h3>
-                
-                <div>
-                    <label class="block mb-1 text-slate-300 font-medium">Servidor (Host):</label>
-                    <input type="text" name="db_host" value="localhost" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
-                </div>
+            <p class="text-slate-400">
+                Esta versão guarda todos os dados em um arquivo <strong>data/futsal.json</strong> no próprio servidor.
+                Não é preciso criar banco de dados no cPanel — basta definir o administrador abaixo.
+            </p>
 
-                <div>
-                    <label class="block mb-1 text-slate-300 font-medium">Nome do Banco de Dados:</label>
-                    <input type="text" name="db_name" placeholder="usuario_futsal" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
-                    <span class="text-[10px] text-slate-500">No cPanel utilize o prefixo (ex: conta_futsal)</span>
-                </div>
-
-                <div>
-                    <label class="block mb-1 text-slate-300 font-medium">Usuário do Banco:</label>
-                    <input type="text" name="db_user" placeholder="usuario_user" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
-                </div>
-
-                <div>
-                    <label class="block mb-1 text-slate-300 font-medium">Senha do Banco:</label>
-                    <input type="password" name="db_pass" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
-                </div>
-            </div>
-
-            <hr class="border-slate-700/60 my-2">
-
-            <!-- Credenciais de Administrador -->
             <div class="space-y-2">
                 <h3 class="font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
                     <i class="fa-solid fa-user-shield"></i> Administrador do Sistema
@@ -185,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-3 rounded-xl transition text-white text-xs flex items-center justify-center gap-2 shadow-lg mt-4">
-                <i class="fa-solid fa-gears"></i> Instalar e Configurar
+                <i class="fa-solid fa-gears"></i> Instalar
             </button>
         </form>
         <?php endif; ?>
