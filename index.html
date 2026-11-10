@@ -5,6 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futsal da Firma</title>
+    <!-- App instalável (PWA) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#059669">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Futsal">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -49,6 +58,11 @@
 
                 <!-- Botões de Ação Admin -->
                 <div id="areaBotoesAdmin">
+                    <button id="btnInstalarApp" onclick="instalarApp()" title="Instalar o app no celular"
+                        class="hidden bg-emerald-600/90 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-lg font-bold transition items-center gap-1.5 mr-1">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                        <span>Instalar app</span>
+                    </button>
                     <button id="btnAbrirModalAdmin" onclick="abrirModalAdmin()"
                         class="bg-slate-700/80 hover:bg-slate-600/80 text-slate-300 text-xs px-3.5 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-slate-600/80">
                         <i class="fa-solid fa-lock text-brand-500/80"></i>
@@ -582,6 +596,34 @@
         </main>
     </div>
 
+    <!-- BAIXAR APP ANDROID -->
+    <section class="max-w-4xl mx-auto px-4 mt-10">
+        <div class="bg-gradient-to-r from-emerald-700 via-emerald-600 to-lime-600 border border-lime-300/30 rounded-2xl p-5 shadow-xl flex flex-col sm:flex-row items-center gap-4">
+            <img src="icon-192.png" alt="" class="w-16 h-16 rounded-2xl shadow-lg border-2 border-white/40">
+            <div class="flex-1 text-center sm:text-left">
+                <h3 class="text-white font-black text-lg leading-tight">📲 Baixe o app Futsal da Firma</h3>
+                <p class="text-white/85 text-xs mt-1">Lista, sorteio, agenda e Craque do Dia direto no celular. Atualiza sozinho!</p>
+                <p class="text-white/60 text-[10px] mt-1">Android · v6.1.0 · 1,1 MB · ao instalar, permita "fontes desconhecidas"</p>
+            </div>
+            <a href="app/futsal-da-firma.apk" download="futsal-da-firma.apk"
+                class="inline-flex items-center gap-2 bg-white hover:bg-lime-50 text-emerald-700 font-extrabold text-sm px-5 py-3 rounded-xl shadow-lg transition whitespace-nowrap">
+                <i class="fa-brands fa-android text-xl"></i> Baixar APK
+            </a>
+        </div>
+        <!-- iPhone: instalar pelo Safari -->
+        <div class="mt-3 bg-slate-800/90 border border-slate-600/60 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div class="flex items-center gap-2 shrink-0">
+                <i class="fa-brands fa-apple text-3xl text-white"></i>
+                <span class="text-white font-black text-sm">Tem iPhone?</span>
+            </div>
+            <ol class="text-slate-200 text-xs space-y-1 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-x-4 list-none">
+                <li><b class="text-lime-300">1.</b> Abra este site no <b>Safari</b></li>
+                <li><b class="text-lime-300">2.</b> Toque em <b>Compartilhar</b> <i class="fa-solid fa-arrow-up-from-bracket"></i></li>
+                <li><b class="text-lime-300">3.</b> Toque em <b>"Adicionar à Tela de Início"</b> <i class="fa-regular fa-square-plus"></i></li>
+            </ol>
+        </div>
+    </section>
+
     <!-- FOOTER COM CRÉDITOS E REDES SOCIAIS -->
     <footer class="mt-12 border-t border-slate-800 bg-slate-950/50 py-6">
         <div
@@ -854,6 +896,40 @@
     <!-- JavaScript Principal -->
     <script>
         const API_URL = 'api.php';
+
+        // ===== APP INSTALÁVEL (PWA) =====
+        let eventoInstalar = null;
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW:', e)));
+        }
+        const appInstalado = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            eventoInstalar = e;
+            const b = document.getElementById('btnInstalarApp');
+            if (b && !appInstalado()) { b.classList.remove('hidden'); b.classList.add('inline-flex'); }
+        });
+        window.addEventListener('appinstalled', () => {
+            eventoInstalar = null;
+            const b = document.getElementById('btnInstalarApp');
+            if (b) { b.classList.add('hidden'); b.classList.remove('inline-flex'); }
+        });
+        async function instalarApp() {
+            if (eventoInstalar) {
+                eventoInstalar.prompt();
+                await eventoInstalar.userChoice;
+                eventoInstalar = null;
+                document.getElementById('btnInstalarApp').classList.add('hidden');
+                return;
+            }
+            alert('Para instalar: abra o menu do navegador (⋮) e toque em "Instalar app" ou "Adicionar à tela inicial".\nNo iPhone: toque em Compartilhar e depois em "Adicionar à Tela de Início".');
+        }
+        // iPhone não dispara o evento de instalação: mostra o botão com instruções
+        document.addEventListener('DOMContentLoaded', () => {
+            const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            const b = document.getElementById('btnInstalarApp');
+            if (b && ios && !appInstalado()) { b.classList.remove('hidden'); b.classList.add('inline-flex'); }
+        });
         let chavePixAtual = '';
         let whatsappAtual = '';
 
