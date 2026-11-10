@@ -2,11 +2,11 @@
 
 Aplicação web leve, responsiva e **sem banco de dados** para organizar partidas recreativas de futsal: confirmação de presença, fila de espera, sorteio inteligente de times, agenda de jogos e prestação de contas do caixa — tudo em uma única página, acessível pelo celular, sem cadastro para os jogadores.
 
-> **Versão 6.1** — todos os dados ficam em um único arquivo `data/futsal.json`. Basta PHP; não é preciso MySQL.
+> **Versão 6.1.1** — todos os dados ficam em um único arquivo `data/futsal.json`. Basta PHP; não é preciso MySQL.
 
-### 🌐 [Ver demonstração ao vivo → vktcloud.com.br/futsal](https://vktcloud.com.br/futsal/)
+### 🌐 [Página do projeto → futsal.vktcloud.com.br](https://futsal.vktcloud.com.br/) · [Testar a demonstração](https://futsal.vktcloud.com.br/demo/)
 
-> Sistema real em uso pelo grupo. A área administrativa é protegida por login.
+> Na demonstração, entre com usuário `demo` e senha `demo`. Os dados voltam ao original todos os dias.
 
 ![Preview](preview_site.png)
 
